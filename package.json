@@ -1,0 +1,46 @@
+{
+  "name": "webnode",
+  "version": "1.0.0",
+  "description": "Efficient and agile web framework for building web applications",
+  "main": "dist",
+  "engines": {
+    "node": ">=10.15.3"
+  },
+  "keywords": [
+    "web framework",
+    "http",
+    "dependency injection"
+  ],
+  "author": {
+    "name": "Wang Tong",
+    "email": "itulayangi@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webnode-io/webnode.git"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/formidable": "^1.0.31",
+    "@types/jest": "^24.0.11",
+    "@types/node": "^11.11.5",
+    "@types/request-promise": "^4.1.42",
+    "gulp": "^4.0.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^5.0.1",
+    "jest": "^24.5.0",
+    "jest-decorators": "^0.1.2",
+    "request-promise": "^4.2.4",
+    "rimraf": "^2.6.3",
+    "ts-jest": "^24.0.1",
+    "ts-node": "^8.0.3",
+    "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "@wennode/cdi": "^1.0.5",
+    "@wennode/http": "^1.0.0"
+  }
+}

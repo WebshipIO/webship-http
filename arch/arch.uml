@@ -1,0 +1,230 @@
+@startuml
+scale 1600 width 
+
+package cdi {
+  interface Provider {
+    () => ProviderInstance | Promise<ProviderInstance>
+  }
+
+  interface ProviderInstance {
+  }
+
+  class ProviderContainer {
+    set(a: Scope, b: ProviderKey, c: Provider)
+    has(a: Scope, b: ProviderKey): boolean
+    get(a: Scope, b: ProviderKey): Provider
+    delete(a: Scope, b: ProviderKey)
+    entries(a: Scope): Iterable<[ProviderKey, Provider]>
+  }
+
+  class ProviderInstanceContainer {
+    set(a: ProviderKey, b: ProviderInstance): this
+    values(): Iterable<ProviderInstance>
+    entries(): Iterable<[ProviderKey, ProviderInstance]>
+    get(a: ProviderKey): ProviderInstance
+    has(a: ProviderKey): boolean
+    delete(a: ProviderKey)
+    clear()
+  }
+
+  Provider o--- ProviderContainer
+  Provider <- ProviderInstance
+  ProviderInstance o-- ProviderInstanceContainer
+
+  interface Node {
+    new(...args: any[]): T
+  }
+
+  interface NodeInstance {
+  }
+
+  Node <- NodeInstance
+
+  interface Dependency {
+    providerKey: ProviderKey
+    providerType: ClassType
+    scope: Scope
+    parameterIndex: number
+  }
+
+  class DenpendencyContainer {
+    set(a: Scope, b: ProviderKey, c: Node<T>, d: PropertyKey, e: number)
+    get(a: Node, b: PropertyKey): Dependency
+    delete(a: Node<T>, b?: PropertyKey)
+    valuesOfDependencies(a: Node<T>, b: PropertyKey): Iterable<Dependency>
+    entriesOfDependencies(): Iterable<[Node, PropertyKey, Dependency]>
+  }
+
+  Dependency *--- DenpendencyContainer
+  Node o--- DenpendencyContainer
+
+  Node o-- NodeInstanceContainer
+  NodeInstance o-- NodeInstanceContainer
+
+  class NodeInstanceContainer {
+    add(a: Node<T>, b: NodeInstance<T>): this
+    values(): Iterable<NodeInstance<T>>
+    entries(): Iterable<[Node<T>, NodeInstance<T> | Set<NodeInstance<T>>]>
+    get(a: Node<T>): NodeInstance<T> | Set<NodeInstance<T>>
+    has(a: Node<T>): boolean
+    delete(a: Node<T>)
+    clear()
+  }
+
+  class ApplicationContext {
+    createSessionContext(session: SessionIdentifier)
+    createRequestContext(session: SessionIdentifier, request: RequestIdentifier)
+
+    clearApplicationLocal()
+    deleteSessionContext(session: SessionIdentifier)
+    deleteRequestContext(session: SessionIdentifier, request: RequestIdentifier)
+
+    hasSessionContext(session: SessionIdentifier): boolean
+    hasRequestContext(session: SessionIdentifier, request: RequestIdentifier): boolean
+
+    getApplicationLocal(): Local
+    getSessionLocal(session: SessionIdentifier): Local
+    getRequestLocal(session: SessionIdentifier, request: RequestIdentifier): Local 
+  }
+
+  NodeInstanceContainer *-- ApplicationContext
+  ProviderInstanceContainer *-- ApplicationContext
+
+  class NodeDispatcher {
+    createApplicationContext()
+    createSessionContext(): SessionIdentifier
+    createRequestContext(session: SessionIdentifier): RequestIdentifier
+
+    destroyApplicationContext()
+    destroySessionContext(session: SessionIdentifier)
+    destroyRequestContext(session: SessionIdentifier, request: RequestIdentifier)
+
+    createInstanceOnApplicationLocal<T>(node: Node<T>): T
+    createInstanceOnSessionLocal<T>(node: Node<T>, session: SessionIdentifier): T
+    createInstanceOnRequestLocal<T>(node: Node<T>, session: SessionIdentifier, request: RequestIdentifier): T
+
+    getInstanceOnApplicationLocal<T>(node: Node<T>): T | Set<T>
+    getInstanceOnSessionLocal<T>(node: Node<T>, session: SessionIdentifier): T | Set<T>
+    getInstanceOnRequestLocal<T>(node: Node<T>, session: SessionIdentifier, request: RequestIdentifier): T | Set<T>
+
+    genArgumentsOnApplicationLocal<T>(node: Node<T>, propertyKey: PropertyKey): Array<any>
+    genArgumentsOnSessionLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier): Array<any>
+    genArgumentsOnRequestLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier, request: RequestIdentifier): Array<any> 
+
+    applyOnApplicationLocal(instance: NodeInstance, propertyKey: PropertyKey)
+    applyOnSessionLocal(instance: NodeInstance, propertyKey: PropertyKey, session: SessionIdentifier)
+    applyOnRequestLocal(instance: NodeInstance, propertyKey: PropertyKey, session: SessionIdentifier, request: RequestIdentifier)
+  }
+
+  DenpendencyContainer o--- NodeDispatcher
+  ProviderContainer o--- NodeDispatcher
+  ApplicationContext o-- NodeDispatcher
+}
+
+package http {
+  interface AutoMethod {
+    (...args: Array<any>) => void | Promise<void>
+  }
+
+  interface AutoMethodGroup {
+    values(): Iterable<AutoMethod>
+  }
+
+  interface AutoMethodProperties {
+    getNode(): Node
+    parametersOf(): Iterable<[number, ParameterPoint]>
+    middlewaresOf(): Iterable<AutoMethod>
+  }
+
+  class AutoMethodPropertiesContainer {
+    get(a: AutoMethod): AutoMethodProperties
+  }
+
+  AutoMethodProperties *---- AutoMethodPropertiesContainer
+
+  AutoMethod o-- AutoMethodGroup
+  AutoMethod o---- AutoMethodPropertiesContainer 
+
+  interface AutoMethodPayload {
+    responseStatus: HttpStatus
+  }
+
+  class AutoMethodPayloadContainer {
+    get(a: AutoMethod): AutoMethodPayload
+  }
+
+  AutoMethodPayload *---- AutoMethodPayloadContainer
+  AutoMethod o---- AutoMethodPayloadContainer
+
+  class Event implements AutoMethodGroup {
+  }
+
+  class EventContainer {
+    get(a: ConnectionEvent): Event
+  }
+
+  Event *-- EventContainer
+
+  class Route implements AutoMethodGroup {
+  }
+
+  class RouteContainer {
+    get(a: HttpMethod, b: RePathname): Route
+  }
+
+  Route *-- RouteContainer
+
+  interface NodeSet {
+    values(): Iterable<Node>
+  }
+
+  class RouteNodeSet implements NodeSet  {
+  }
+
+  class EventNodeSet implements NodeSet {
+  }
+
+  NodeSet o--- Executor
+  AutoMethodPropertiesContainer o---- Executor
+  AutoMethodPayloadContainer o---- Executor
+  EventContainer o---- Executor
+  RouteContainer o---- Executor
+
+  class Request {
+    httpVersion: string
+    method: HttpMethod
+    uri: UrlWithParsedQuery
+    params: RePathnameParams
+    headers: OutgoingHttpHeaders
+    body: Object | string | Buffer
+    sessionIdent: SessionIdentifier
+    requestIdent: RequestIdentifier
+  }
+
+  class Response {
+    status: HttpStatus
+    headers: OutgoingHttpHeaders
+    body: Object | string | Readable
+    setHeader(name: string, value: HttpHeader)
+    getHeader(name: string): HttpHeader
+  }
+
+  class Executor {
+    exec(): Promise<void>
+  }
+
+  
+  Request *-- Executor
+  Response *-- Executor
+
+  class Server {
+    serve(): Promise<void>
+    close(): Promise<void>
+  }
+
+  Executor *-- Server
+  NodeDispatcher -[hidden]--> AutoMethod
+  NodeDispatcher <-- Executor
+}
+
+@enduml
