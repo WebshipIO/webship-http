@@ -40,7 +40,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@wennode/cdi": "^1.0.5",
-    "@wennode/http": "^1.0.0"
+    "@webnode/cdi": "^1.0.5",
+    "@webnode/http": "^1.0.0"
   }
 }
