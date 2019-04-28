@@ -7,7 +7,7 @@ import Stream = require('stream')
 import Events = require("events")
 import Cdi = require("@webnode/cdi")
 
-declare namespace WebNode {
+declare namespace WebCdi.Node {
   export enum HttpErrorCode {
     BAD_REQEUST,
     UNAUTHORIZED,
@@ -107,9 +107,9 @@ declare namespace WebNode {
     ERROR
   }
 
-  export function Controller(node: Node): Node 
+  export function Controller(node: Cdi.Node): Cdi.Node 
 
-  export function RequestLifecycle(node: Node): Node 
+  export function RequestLifecycle(node: Cdi.Node): Cdi.Node 
 
   export function RequestMapping(method: HttpMethod, rePathname: RePathname): MethodDecorator
 
@@ -160,4 +160,4 @@ declare namespace WebNode {
   export function ReqBody(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
 }
 
-export = WebNode
+export = WebCdi.Node
