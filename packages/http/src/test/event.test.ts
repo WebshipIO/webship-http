@@ -35,7 +35,7 @@ class DefaultConnectionLifecycle {
 class Home {
   @Get('/')
   private getA(
-    @Res() res: ServerResponse,
+    @Res res: ServerResponse,
     @ApplicationScope('a') a: A
   ) {
     res.body = {

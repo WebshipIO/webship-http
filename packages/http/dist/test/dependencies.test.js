@@ -59,14 +59,14 @@ let Home = class Home {
 };
 __decorate([
     __2.Get('/app'),
-    __param(0, __3.Res()),
+    __param(0, __3.Res),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "getApp", null);
 __decorate([
     __2.Get('/'),
-    __param(0, __3.Res()),
+    __param(0, __3.Res),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse]),
     __metadata("design:returntype", void 0)

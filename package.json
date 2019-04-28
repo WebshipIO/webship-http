@@ -1,6 +1,6 @@
 {
   "name": "webnode",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Efficient and agile web framework for building web applications",
   "main": "dist",
   "engines": {

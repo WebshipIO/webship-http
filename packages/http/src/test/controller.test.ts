@@ -17,37 +17,37 @@ interface TraceBody {
 @Controller
 class Home {
   @Post('/')
-  private create(@Res() res: ServerResponse) {
+  private create(@Res res: ServerResponse) {
     res.status = 201
   }
 
   @Get('/:id')
-  private get(@Res() res: ServerResponse, @Params() params: RePathnameParams) {
+  private get(@Res res: ServerResponse, @Params params: RePathnameParams) {
     res.body = {id: parseInt(params.id)}
   }
 
   @Put('/:id/value')
-  private update(@Res() res: ServerResponse, @Params() params: RePathnameParams, @ReqBody() body: UpdateBody) {
+  private update(@Res res: ServerResponse, @Params params: RePathnameParams, @ReqBody body: UpdateBody) {
     res.body = {value: body.value}
   }
 
   @Delete('/:id')
-  private delete(@Res() res: ServerResponse, @Params() params: RePathnameParams) {
+  private delete(@Res res: ServerResponse, @Params params: RePathnameParams) {
     res.body = {id: 0}
   }
 
   @Head('/')
-  private head(@Res() res: ServerResponse, @Params() params: RePathnameParams) {
+  private head(@Res res: ServerResponse, @Params params: RePathnameParams) {
     res.status = 204
   }
 
   @Options('/')
-  private options(@Res() res: ServerResponse, @Params() params: RePathnameParams) {
+  private options(@Res res: ServerResponse, @Params params: RePathnameParams) {
     res.setHeader('Accept-Language', 'en-us')
   }
 
   @Trace('/')
-  private trace(@Res() res: ServerResponse, @Params() params: RePathnameParams, @ReqBody() body: TraceBody) {
+  private trace(@Res res: ServerResponse, @Params params: RePathnameParams, @ReqBody body: TraceBody) {
     res.body = body
   }
 }

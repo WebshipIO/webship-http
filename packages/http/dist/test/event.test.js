@@ -75,7 +75,7 @@ let Home = class Home {
 };
 __decorate([
     __2.Get('/'),
-    __param(0, __3.Res()),
+    __param(0, __3.Res),
     __param(1, cdi_1.ApplicationScope('a')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse,

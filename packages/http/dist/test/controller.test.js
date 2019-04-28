@@ -50,49 +50,49 @@ let Home = class Home {
 };
 __decorate([
     __2.Post('/'),
-    __param(0, __3.Res()),
+    __param(0, __3.Res),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "create", null);
 __decorate([
     __2.Get('/:id'),
-    __param(0, __3.Res()), __param(1, __3.Params()),
+    __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "get", null);
 __decorate([
     __2.Put('/:id/value'),
-    __param(0, __3.Res()), __param(1, __3.Params()), __param(2, __3.ReqBody()),
+    __param(0, __3.Res), __param(1, __3.Params), __param(2, __3.ReqBody),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "update", null);
 __decorate([
     __2.Delete('/:id'),
-    __param(0, __3.Res()), __param(1, __3.Params()),
+    __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "delete", null);
 __decorate([
     __2.Head('/'),
-    __param(0, __3.Res()), __param(1, __3.Params()),
+    __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "head", null);
 __decorate([
     __2.Options('/'),
-    __param(0, __3.Res()), __param(1, __3.Params()),
+    __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "options", null);
 __decorate([
     __2.Trace('/'),
-    __param(0, __3.Res()), __param(1, __3.Params()), __param(2, __3.ReqBody()),
+    __param(0, __3.Res), __param(1, __3.Params), __param(2, __3.ReqBody),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [__1.ServerResponse, Object, Object]),
     __metadata("design:returntype", void 0)

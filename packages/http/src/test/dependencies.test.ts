@@ -21,7 +21,7 @@ class Home {
   }
 
   @Get('/app')
-  private getApp(@Res() res: ServerResponse) {
+  private getApp(@Res res: ServerResponse) {
     if (this.a !== undefined) {
       this.a.value = 100
     }
@@ -34,7 +34,7 @@ class Home {
   }
 
   @Get('/')
-  private get(@Res() res: ServerResponse) {
+  private get(@Res res: ServerResponse) {
     res.body = {
       a: this.a,
       b: this.b,

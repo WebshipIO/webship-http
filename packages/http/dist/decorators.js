@@ -91,32 +91,32 @@ function Patch(requestRePathname) {
     return RequestMapping('PATCH', requestRePathname);
 }
 exports.Patch = Patch;
-function Req() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST);
+function Req(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST)(target, propertyKey, parameterIndex);
 }
 exports.Req = Req;
-function Res() {
-    return ParameterMapping(automethod_1.ParameterPoint.RESPONSE);
+function Res(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.RESPONSE)(target, propertyKey, parameterIndex);
 }
 exports.Res = Res;
-function Uri() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_URI);
+function Uri(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_URI)(target, propertyKey, parameterIndex);
 }
 exports.Uri = Uri;
-function Headers() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_HEADERS);
+function Headers(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_HEADERS)(target, propertyKey, parameterIndex);
 }
 exports.Headers = Headers;
-function Params() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_PARAMS);
+function Params(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_PARAMS)(target, propertyKey, parameterIndex);
 }
 exports.Params = Params;
-function Query() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_QUERY);
+function Query(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_QUERY)(target, propertyKey, parameterIndex);
 }
 exports.Query = Query;
-function ReqBody() {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_BODY);
+function ReqBody(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_BODY)(target, propertyKey, parameterIndex);
 }
 exports.ReqBody = ReqBody;
 

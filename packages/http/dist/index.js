@@ -4,6 +4,7 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./error"));
+__export(require("./automethod"));
 __export(require("./request"));
 __export(require("./response"));
 __export(require("./server"));

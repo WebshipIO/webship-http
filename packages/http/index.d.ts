@@ -47,8 +47,8 @@ declare namespace WebNode {
     public readonly params: RePathnameParams
     public readonly headers: Http.OutgoingHttpHeaders
     public readonly body: Object | string
-    public readonly sessionIdent: Cdi.Cdi.SessionIdentifier
-    public readonly requestIdent: Cdi.Cdi.RequestIdentifier
+    public readonly sessionIdent: Cdi.SessionIdentifier
+    public readonly requestIdent: Cdi.RequestIdentifier
   }
 
   export type HttpStatus = 100 | 101 | 102 | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226 | 
@@ -97,6 +97,67 @@ declare namespace WebNode {
     public close(): Promise<void>
     public address(): Net.AddressInfo
   }
+
+  export type AutoMethod = (...args: Array<any>) => void | Promise<void>
+
+  export enum ParameterPoint {
+    REQUEST, 
+    RESPONSE, 
+    REQUEST_URI, REQUEST_QUERY, REQUEST_HEADERS, REQUEST_PARAMS, REQUEST_BODY, 
+    ERROR
+  }
+
+  export function Controller(node: Node): Node 
+
+  export function RequestLifecycle(node: Node): Node 
+
+  export function RequestMapping(method: HttpMethod, rePathname: RePathname): MethodDecorator
+
+  export function Middleware(middleware: AutoMethod): MethodDecorator
+
+  export function ParameterMapping(point: ParameterPoint): ParameterDecorator
+
+  export function createMiddleware(middleware: AutoMethod): MethodDecorator
+
+  export function ResStatus(status: HttpStatus): MethodDecorator
+
+  export function RequestStart(target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor): void 
+
+  export function RequestEnd(target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor): void 
+
+  export function RequestError(target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor): void 
+
+  export function Get(requestRePathname: string): MethodDecorator 
+
+  export function Post(requestRePathname: string): MethodDecorator 
+
+  export function Put(requestRePathname: string): MethodDecorator 
+
+  export function Delete(requestRePathname: string): MethodDecorator 
+
+  export function Head(requestRePathname: string): MethodDecorator 
+
+  export function Trace(requestRePathname: string): MethodDecorator 
+
+  export function Options(requestRePathname: string): MethodDecorator 
+
+  export function Connect(requestRePathname: string): MethodDecorator 
+
+  export function Patch(requestRePathname: string): MethodDecorator 
+
+  export function Req(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function Res(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function Uri(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function Headers(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function Params(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function Query(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
+
+  export function ReqBody(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
 }
 
 export = WebNode

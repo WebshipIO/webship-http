@@ -6,6 +6,8 @@ import {Event} from './event'
 import {HttpMethod, RePathname, RePathnameParams} from './request'
 import {HttpStatus} from './response'
 
+export type PropertyKey = string | symbol
+
 export function Controller(node: Node): Node {
   Registry.instance.registerRouteNode(node)
   return node
@@ -98,30 +100,30 @@ export function Patch(requestRePathname: string): MethodDecorator {
   return RequestMapping('PATCH', requestRePathname)
 }
 
-export function Req(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST)
+export function Req(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST)(target, propertyKey, parameterIndex)
 }
 
-export function Res(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.RESPONSE)
+export function Res(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.RESPONSE)(target, propertyKey, parameterIndex)
 }
 
-export function Uri(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST_URI)
+export function Uri(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_URI)(target, propertyKey, parameterIndex)
 }
 
-export function Headers(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST_HEADERS)
+export function Headers(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_HEADERS)(target, propertyKey, parameterIndex)
 }
 
-export function Params(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST_PARAMS)
+export function Params(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_PARAMS)(target, propertyKey, parameterIndex)
 }
 
-export function Query(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST_QUERY)
+export function Query(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_QUERY)(target, propertyKey, parameterIndex)
 }
 
-export function ReqBody(): ParameterDecorator {
-  return ParameterMapping(ParameterPoint.REQUEST_BODY)
+export function ReqBody(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_BODY)(target, propertyKey, parameterIndex)
 }
