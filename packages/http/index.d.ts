@@ -7,7 +7,7 @@ import Stream = require('stream')
 import Events = require("events")
 import Cdi = require("@webnode/cdi")
 
-declare namespace WebCdi.Node {
+declare namespace WebNode {
   export enum HttpErrorCode {
     BAD_REQEUST,
     UNAUTHORIZED,

@@ -1,15 +1,14 @@
 {
-  "name": "@webnode/http",
-  "version": "1.0.3",
-  "description": "Efficient and agile web framework for building web applications",
+  "name": "@webnode/pg-template",
+  "version": "1.0.1",
+  "description": "PG sql template",
   "main": "dist",
   "engines": {
     "node": ">=10.15.3"
   },
   "keywords": [
-    "web framework",
-    "http",
-    "webnode"
+    "sql",
+    "template"
   ],
   "author": {
     "name": "Wang Tong",
@@ -25,9 +24,9 @@
     "build": "gulp build"
   },
   "devDependencies": {
-    "@types/formidable": "^1.0.31",
+    "@types/pg": "^7.4.14",
+    "@types/pg-format": "^1.0.0",
     "@types/jest": "^24.0.11",
-    "@types/node": "^11.11.5",
     "@types/request-promise": "^4.1.42",
     "gulp": "^4.0.0",
     "gulp-sourcemaps": "^2.6.5",
@@ -41,8 +40,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "formidable": "^1.2.1",
-    "path-to-regexp": "^3.0.0",
-    "@webnode/cdi": "^1.0.5"
+    "pg": "^7.10.0",
+    "pg-format": "^1.0.4"
   }
 }
