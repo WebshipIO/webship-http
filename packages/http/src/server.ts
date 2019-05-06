@@ -38,6 +38,7 @@ export class HttpServer {
   private config: ServerConfig
   private server: Server = createServer()
   private closed: boolean = true
+  private connectionCount: number = 0
 
   constructor(config?: ServerConfig) {
     if (typeof config !== 'object' || config === null) {
@@ -95,7 +96,12 @@ export class HttpServer {
     }
     this.server.on('connection', (connection) => this.prepareSessionContext(connection))
     this.server.on('request', (req, res) => new RequestExecutor(req, res, this.nodeDispatcher, Registry.instance, this.config).exec())
-    this.server.on('close', () => this.closed = true)
+    this.server.on('close', () => {
+      this.closed = true
+      if (this.connectionCount === 0) {
+        this.nodeDispatcher.destroyApplicationContext()
+      }
+    })
     this.prepareApplicationContext()
     await new Promise((complete, fail) => this.server.listen(port, hostname, complete))
     this.closed = false
@@ -122,7 +128,14 @@ export class HttpServer {
       this.nodeDispatcher.createInstanceOnSessionLocal(node, session) // Controller Node Instance 一定只有一个
     }
     (connection as any).__session__ = session
-    connection.on('close', () => this.nodeDispatcher.destroySessionContext(session))
+    connection.on('close', () => {
+      this.nodeDispatcher.destroySessionContext(session)
+      this.connectionCount--
+      if (this.closed) {
+        this.nodeDispatcher.destroyApplicationContext()
+      }
+    })
+    this.connectionCount++
   }
 }
 

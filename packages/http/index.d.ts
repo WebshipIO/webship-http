@@ -160,4 +160,4 @@ declare namespace WebNode {
   export function ReqBody(target: Object, propertyKey: PropertyKey, parameterIndex: number): void
 }
 
-export = WebCdi.Node
+export = WebNode
