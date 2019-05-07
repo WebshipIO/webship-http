@@ -49,7 +49,7 @@ export class NodeDispatcher {
   public genArgumentsOnApplicationLocal<T>(node: Node<T>, propertyKey: PropertyKey): Array<any> {
     // 生成节点属性的依赖参数
     let args: Array<ProviderInstance> = []
-    for (let dependency of this.dependencyContainer.valuesOfDependencies(node, propertyKey)) {
+    for (let dependency of this.dependencyContainer.values(node, propertyKey)) {
       switch (dependency.scope) {
       case Scope.APPLICATION:
         args[dependency.parameterIndex] = this.context.getProviderInstanceContainerOfApplicationLocal().get(dependency.providerKey)
@@ -65,7 +65,7 @@ export class NodeDispatcher {
   public genArgumentsOnSessionLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier): Array<any> {
     // 生成节点属性的依赖参数
     let args: Array<ProviderInstance> = []
-    for (let dependency of this.dependencyContainer.valuesOfDependencies(node, propertyKey)) {
+    for (let dependency of this.dependencyContainer.values(node, propertyKey)) {
       switch (dependency.scope) {
       case Scope.APPLICATION:
         args[dependency.parameterIndex] = this.context.getProviderInstanceContainerOfApplicationLocal().get(dependency.providerKey)
@@ -83,7 +83,7 @@ export class NodeDispatcher {
   public genArgumentsOnRequestLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier, request: RequestIdentifier): Array<any> {
     // 生成节点属性的依赖参数
     let args: Array<ProviderInstance> = []
-    for (let dependency of this.dependencyContainer.valuesOfDependencies(node, propertyKey)) {
+    for (let dependency of this.dependencyContainer.values(node, propertyKey)) {
       switch (dependency.scope) {
       case Scope.APPLICATION:
         args[dependency.parameterIndex] = this.context.getProviderInstanceContainerOfApplicationLocal().get(dependency.providerKey)
@@ -118,7 +118,7 @@ export class NodeDispatcher {
     // 创建应用程序环境，此时，所有属于 Application Scope 的 Provider 实例都被创建
     let providerInstanceContainer = this.context.getProviderInstanceContainerOfApplicationLocal()
     for (let [key, provider] of this.providerContainer.entries(Scope.APPLICATION)) {
-      providerInstanceContainer.set(key, provider())
+      providerInstanceContainer.set(key, provider(this.context))
     }
   }
 
@@ -154,7 +154,7 @@ export class NodeDispatcher {
     let session = Symbol('session')
     this.context.createSessionContext(session)
     for (let [key, provider] of this.providerContainer.entries(Scope.SESSION)) {
-      this.context.getProviderInstanceContainerOfSessionLocal(session).set(key, provider())
+      this.context.getProviderInstanceContainerOfSessionLocal(session).set(key, provider(this.context, session))
     }
     return session
   }
@@ -191,7 +191,7 @@ export class NodeDispatcher {
     let request = Symbol('request')
     this.context.createRequestContext(session, request)
     for (let [key, provider] of this.providerContainer.entries(Scope.SESSION)) {
-      this.context.getProviderInstanceContainerOfRequestLocal(session, request).set(key, provider())
+      this.context.getProviderInstanceContainerOfRequestLocal(session, request).set(key, provider(this.context, session, request))
     }
     return request
   }

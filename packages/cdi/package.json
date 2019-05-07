@@ -1,6 +1,6 @@
 {
   "name": "@webnode/cdi",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Efficient context and dependency injection framework",
   "main": "dist",
   "engines": {

@@ -19,12 +19,6 @@ function RequestMapping(method, rePathname) {
     };
 }
 exports.RequestMapping = RequestMapping;
-function Middleware(middleware) {
-    return function (target, propertyKey, descriptor) {
-        registry_1.Registry.instance.registerMiddleware(target.constructor, middleware);
-    };
-}
-exports.Middleware = Middleware;
 function ParameterMapping(point) {
     return function (target, propertyKey, parameterIndex) {
         registry_1.Registry.instance.registerParameter(target.constructor, Reflect.get(target, propertyKey), parameterIndex, point);
@@ -33,7 +27,7 @@ function ParameterMapping(point) {
 exports.ParameterMapping = ParameterMapping;
 function createMiddleware(middleware) {
     return function (target, propertyKey, descriptor) {
-        registry_1.Registry.instance.registerMiddleware(target.constructor, middleware);
+        registry_1.Registry.instance.registerMiddleware(target.constructor, descriptor.value, middleware);
     };
 }
 exports.createMiddleware = createMiddleware;

@@ -10,9 +10,9 @@
 */
 
 import {Scope, SessionIdentifier, RequestIdentifier} from './scope'
-import {ApplicationContext} from './context'
+import {ApplicationContext, SessionContext, RequestContext} from './context2'
 
-export type Provider = (context: ApplicationContext, session?: SessionIdentifier, request?: RequestIdentifier) => ProviderInstance | Promise<ProviderInstance>
+export type Provider = (application: ApplicationContext, session?: SessionContext, request?: RequestContext) => ProviderInstance | Promise<ProviderInstance>
 export type ProviderInstance = NonNullable<Object>
 export type ProviderKey = PropertyKey
 export type ProviderMap = Map<ProviderKey, Provider>

@@ -28,10 +28,11 @@ function hasFormData(headerKey) {
         hasContent(headerKey, "application/x-www-form-urlencoded");
 }
 class RequestExecutor {
-    constructor(nativeRequest, nativeResponse, nodeDispatcher, registry, config) {
+    constructor(nativeRequest, nativeResponse, nodeDispatcher, context, registry, config) {
         this.nativeRequest = nativeRequest;
         this.nativeResponse = nativeResponse;
         this.nodeDispatcher = nodeDispatcher;
+        this.context = context;
         this.registry = registry;
         this.config = config;
         this.request = new request_1.ServerRequest();
@@ -149,7 +150,7 @@ class RequestExecutor {
                 }
                 this.composeArgs(properties, args);
                 for (let middleware of properties.valuesOfMiddlewares()) {
-                    yield Reflect.apply(middleware, instance, args);
+                    yield Reflect.apply(middleware, instance, [this.request, this.response, this.context]);
                 }
                 yield Reflect.apply(autoMethod, instance, args);
             }

@@ -28,7 +28,7 @@ class SQLTemplateContainer extends Map {
                 switch (value.type) {
                     case 'query':
                         if (typeof value.sql === 'string') {
-                            var f = Reflect.get(classType.prototype, key);
+                            value.fn = Reflect.get(classType.prototype, key);
                             Reflect.defineProperty(classType.prototype, key, {
                                 value: function (...args) {
                                     return __awaiter(this, void 0, void 0, function* () {
@@ -41,7 +41,7 @@ class SQLTemplateContainer extends Map {
                         break;
                     case 'transcation':
                         if (typeof value.sql === 'string') {
-                            var f = Reflect.get(classType.prototype, key);
+                            value.fn = Reflect.get(classType.prototype, key);
                             Reflect.defineProperty(classType.prototype, key, {
                                 value: function (...args) {
                                     return __awaiter(this, void 0, void 0, function* () {
@@ -66,6 +66,28 @@ class SQLTemplateContainer extends Map {
                                         return typeof value.filter === 'function' ? value.filter(result) : result;
                                     });
                                 }
+                            });
+                        }
+                        break;
+                }
+            }
+        }
+    }
+    untransform() {
+        for (let [classType, map] of super.entries()) {
+            for (let [key, value] of map.entries()) {
+                switch (value.type) {
+                    case 'query':
+                        if (typeof value.sql === 'string') {
+                            Reflect.defineProperty(classType.prototype, key, {
+                                value: value.fn
+                            });
+                        }
+                        break;
+                    case 'transcation':
+                        if (typeof value.sql === 'string') {
+                            Reflect.defineProperty(classType.prototype, key, {
+                                value: value.fn
                             });
                         }
                         break;

@@ -1,5 +1,5 @@
 import {Node} from '@webnode/cdi'
-import {AutoMethod, AutoMethodProperties, ParameterPoint} from './automethod'
+import {AutoMethod, AutoMethodProperties, ParameterPoint, Middleware} from './automethod'
 import {Route} from './route'
 import {Registry} from './registry'
 import {Event} from './event'
@@ -24,11 +24,11 @@ export function RequestMapping(method: HttpMethod, rePathname: RePathname): Meth
   }
 }
 
-export function Middleware(middleware: AutoMethod): MethodDecorator {
-  return function (target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor) {
-    Registry.instance.registerMiddleware(target.constructor as Node, middleware)
-  }
-}
+// export function Middleware(middleware: AutoMethod): MethodDecorator {
+//   return function (target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor) {
+//     Registry.instance.registerMiddleware(target.constructor as Node, middleware)
+//   }
+// }
 
 export function ParameterMapping(point: ParameterPoint): ParameterDecorator {
   return function (target: Object, propertyKey: PropertyKey, parameterIndex: number) {
@@ -40,9 +40,9 @@ export function ParameterMapping(point: ParameterPoint): ParameterDecorator {
   }
 }
 
-export function createMiddleware(middleware: AutoMethod): MethodDecorator {
+export function createMiddleware(middleware: Middleware): MethodDecorator {
   return function (target: Object, propertyKey: PropertyKey, descriptor: PropertyDescriptor) {
-    Registry.instance.registerMiddleware(target.constructor as Node, middleware)
+    Registry.instance.registerMiddleware(target.constructor as Node, descriptor.value, middleware)
   }
 }
 

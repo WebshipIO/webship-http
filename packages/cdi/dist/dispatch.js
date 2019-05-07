@@ -92,7 +92,7 @@ class NodeDispatcher {
     createApplicationContext() {
         let providerInstanceContainer = this.context.getProviderInstanceContainerOfApplicationLocal();
         for (let [key, provider] of this.providerContainer.entries(scope_1.Scope.APPLICATION)) {
-            providerInstanceContainer.set(key, provider());
+            providerInstanceContainer.set(key, provider(this.context));
         }
     }
     destroyApplicationContext() {
@@ -120,7 +120,7 @@ class NodeDispatcher {
         let session = Symbol('session');
         this.context.createSessionContext(session);
         for (let [key, provider] of this.providerContainer.entries(scope_1.Scope.SESSION)) {
-            this.context.getProviderInstanceContainerOfSessionLocal(session).set(key, provider());
+            this.context.getProviderInstanceContainerOfSessionLocal(session).set(key, provider(this.context, session));
         }
         return session;
     }
@@ -149,7 +149,7 @@ class NodeDispatcher {
         let request = Symbol('request');
         this.context.createRequestContext(session, request);
         for (let [key, provider] of this.providerContainer.entries(scope_1.Scope.SESSION)) {
-            this.context.getProviderInstanceContainerOfRequestLocal(session, request).set(key, provider());
+            this.context.getProviderInstanceContainerOfRequestLocal(session, request).set(key, provider(this.context, session, request));
         }
         return request;
     }

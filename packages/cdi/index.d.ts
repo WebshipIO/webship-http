@@ -9,7 +9,7 @@ declare namespace WebNode {
   export type SessionIdentifier = symbol
   export type RequestIdentifier = symbol
 
-  export type Provider = () => ProviderInstance | Promise<ProviderInstance>
+  export type Provider = (context: ApplicationContext, session?: SessionIdentifier, request?: RequestIdentifier) => ProviderInstance | Promise<ProviderInstance>
   export type ProviderInstance = NonNullable<Object>
   export type ProviderKey = PropertyKey
   export type ProviderMap = Map<ProviderKey, Provider>

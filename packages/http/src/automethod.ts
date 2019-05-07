@@ -1,5 +1,6 @@
-import {ClassType, Node} from '@webnode/cdi'
-import {HttpStatus} from './response'
+import {ClassType, Node, ApplicationContext} from '@webnode/cdi'
+import {ServerRequest} from './request'
+import {ServerResponse, HttpStatus} from './response'
 
 export enum ParameterPoint {
   REQUEST, 
@@ -9,10 +10,11 @@ export enum ParameterPoint {
 }
 
 export type AutoMethod = (...args: Array<any>) => void | Promise<void>
+export type Middleware = (req: ServerRequest, res: ServerResponse, context: ApplicationContext) => void | Promise<void>
 
 export class AutoMethodProperties {
   private parameters: Map<number, ParameterPoint>
-  private middlewares?: Array<AutoMethod>
+  private middlewares?: Array<Middleware>
 
   constructor(private node: Node) {
   }
@@ -43,14 +45,14 @@ export class AutoMethodProperties {
     }
   }
 
-  public addMiddleware(m: AutoMethod) {
+  public addMiddleware(m: Middleware) {
     if (this.middlewares === undefined) {
       this.middlewares = []
     }
     this.middlewares.push(m)
   }
 
-  public * valuesOfMiddlewares(): Iterable<AutoMethod> {
+  public * valuesOfMiddlewares(): Iterable<Middleware> {
     if (this.middlewares !== undefined) {
       for (let m of this.middlewares) {
         yield m

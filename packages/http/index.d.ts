@@ -99,6 +99,7 @@ declare namespace WebNode {
   }
 
   export type AutoMethod = (...args: Array<any>) => void | Promise<void>
+  export type Middleware = (req: ServerRequest, res: ServerResponse, context: Cdi.ApplicationContext) => void | Promise<void>
 
   export enum ParameterPoint {
     REQUEST, 
@@ -113,11 +114,9 @@ declare namespace WebNode {
 
   export function RequestMapping(method: HttpMethod, rePathname: RePathname): MethodDecorator
 
-  export function Middleware(middleware: AutoMethod): MethodDecorator
-
   export function ParameterMapping(point: ParameterPoint): ParameterDecorator
 
-  export function createMiddleware(middleware: AutoMethod): MethodDecorator
+  export function createMiddleware(middleware: Middleware): MethodDecorator
 
   export function ResStatus(status: HttpStatus): MethodDecorator
 

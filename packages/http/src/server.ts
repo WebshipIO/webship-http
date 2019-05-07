@@ -95,7 +95,7 @@ export class HttpServer {
       this.server.timeout = this.config.timeout
     }
     this.server.on('connection', (connection) => this.prepareSessionContext(connection))
-    this.server.on('request', (req, res) => new RequestExecutor(req, res, this.nodeDispatcher, Registry.instance, this.config).exec())
+    this.server.on('request', (req, res) => new RequestExecutor(req, res, this.nodeDispatcher, this.context, Registry.instance, this.config).exec())
     this.server.on('close', () => {
       this.closed = true
       if (this.connectionCount === 0) {

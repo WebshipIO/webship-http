@@ -86,11 +86,11 @@ class Registry {
         }
         this.autoMethodPayloadContainer.get(autoMethod).setResponseStatus(status);
     }
-    registerMiddleware(node, autoMethod) {
+    registerMiddleware(node, autoMethod, middleware) {
         if (!this.autoMethodPropertiesContainer.has(autoMethod)) {
             this.autoMethodPropertiesContainer.set(autoMethod, new automethod_1.AutoMethodProperties(node));
         }
-        this.autoMethodPropertiesContainer.get(autoMethod).addMiddleware(autoMethod);
+        this.autoMethodPropertiesContainer.get(autoMethod).addMiddleware(middleware);
     }
     registerRoute(node, autoMethod, method, rePathname) {
         if (!this.autoMethodPropertiesContainer.has(autoMethod)) {

@@ -49,10 +49,11 @@ export class DependencyContainer {
       scope: scope,
       parameterIndex: parameterIndex
     }
-    if (!this.map.get(node).has(propertyKey)) {
-      this.map.get(node).set(propertyKey, [])
+    let submap = this.map.get(node)
+    if (!submap.has(propertyKey)) {
+      submap.set(propertyKey, [])
     }
-    this.map.get(node).get(propertyKey)[parameterIndex] = dependency
+    submap.get(propertyKey)[parameterIndex] = dependency
   }
 
   public get<T>(node: Node<T>, propertyKey: PropertyKey): Array<Dependency> {
@@ -60,6 +61,10 @@ export class DependencyContainer {
       return this.map.get(node).get(propertyKey)
     }
     return []
+  }
+
+  public has<T>(node: Node<T>, propertyKey: PropertyKey): boolean {
+    return this.map.has(node) && this.map.get(node).has(propertyKey)
   }
 
   public delete<T>(node: Node<T>, propertyKey?: PropertyKey) {
@@ -74,7 +79,23 @@ export class DependencyContainer {
     }
   }
 
-  public * valuesOfDependencies<T>(node: Node<T>, propertyKey: PropertyKey): Iterable<Dependency> { 
+  public clear() {
+    this.map.clear()
+  }
+
+  public size<T>(node?: Node<T>) {
+    if (arguments.length > 1) {
+      if (this.map.has(node)) {
+        return this.map.get(node).size
+      } else {
+        return 0
+      }
+    } else {
+      return this.map.size
+    }
+  }
+
+  public * values<T>(node: Node<T>, propertyKey: PropertyKey): Iterable<Dependency> { 
     // 依赖只关注当前节点本身，而不灌注父类（如果继承的话）
     if (this.map.has(node)) {
       let propertyKeyMap = this.map.get(node)
@@ -88,7 +109,7 @@ export class DependencyContainer {
     }
   }
 
-  public * entriesOfDependencies<T>(): Iterable<[Node, PropertyKey, Dependency]> { 
+  public * entries<T>(): Iterable<[Node, PropertyKey, Dependency]> { 
     // 依赖只关注当前节点本身，而不灌注父类（如果继承的话）
     for (let [node, propertyKeyMap] of this.map.entries()) {
       for (let [propertyKey, dependencies] of propertyKeyMap.entries()) {

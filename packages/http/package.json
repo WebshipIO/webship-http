@@ -1,6 +1,6 @@
 {
   "name": "@webnode/http",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Efficient and agile web framework for building web applications",
   "main": "dist",
   "engines": {

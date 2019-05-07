@@ -1,7 +1,7 @@
 import {Node, NodeDispatcher} from '@webnode/cdi'
 import {HttpMethod, RePathname, RePathnameParams} from './request'
 import {HttpStatus} from './response'
-import {AutoMethod, AutoMethodProperties, AutoMethodPayload, ParameterPoint} from './automethod'
+import {AutoMethod, AutoMethodProperties, AutoMethodPayload, ParameterPoint, Middleware} from './automethod'
 import {AutoMethodPropertiesContainer, AutoMethodPayloadContainer} from './automethod'
 import {Event, EventContainer} from './event'
 import {Route, RouteContainer} from './route'
@@ -103,11 +103,11 @@ export class Registry {
     this.autoMethodPayloadContainer.get(autoMethod).setResponseStatus(status)
   }
 
-  public registerMiddleware(node: Node, autoMethod: AutoMethod) {
+  public registerMiddleware(node: Node, autoMethod: AutoMethod, middleware: Middleware) {
     if (!this.autoMethodPropertiesContainer.has(autoMethod)) {
       this.autoMethodPropertiesContainer.set(autoMethod, new AutoMethodProperties(node))
     }
-    this.autoMethodPropertiesContainer.get(autoMethod).addMiddleware(autoMethod)
+    this.autoMethodPropertiesContainer.get(autoMethod).addMiddleware(middleware)
   }
 
   public registerRoute(node: Node, autoMethod: AutoMethod, method: HttpMethod, rePathname: RePathname) {

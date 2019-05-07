@@ -19,6 +19,7 @@ class HttpServer {
         this.nodeDispatcher = new cdi_1.NodeDispatcher(cdi_1.ProviderContainer.instance, cdi_1.DependencyContainer.instance, this.context);
         this.server = http_1.createServer();
         this.closed = true;
+        this.connectionCount = 0;
         if (typeof config !== 'object' || config === null) {
             config = Object.create(null);
         }
@@ -68,8 +69,13 @@ class HttpServer {
                 this.server.timeout = this.config.timeout;
             }
             this.server.on('connection', (connection) => this.prepareSessionContext(connection));
-            this.server.on('request', (req, res) => new executor_1.RequestExecutor(req, res, this.nodeDispatcher, registry_1.Registry.instance, this.config).exec());
-            this.server.on('close', () => this.closed = true);
+            this.server.on('request', (req, res) => new executor_1.RequestExecutor(req, res, this.nodeDispatcher, this.context, registry_1.Registry.instance, this.config).exec());
+            this.server.on('close', () => {
+                this.closed = true;
+                if (this.connectionCount === 0) {
+                    this.nodeDispatcher.destroyApplicationContext();
+                }
+            });
             this.prepareApplicationContext();
             yield new Promise((complete, fail) => this.server.listen(port, hostname, complete));
             this.closed = false;
@@ -95,7 +101,14 @@ class HttpServer {
             this.nodeDispatcher.createInstanceOnSessionLocal(node, session);
         }
         connection.__session__ = session;
-        connection.on('close', () => this.nodeDispatcher.destroySessionContext(session));
+        connection.on('close', () => {
+            this.nodeDispatcher.destroySessionContext(session);
+            this.connectionCount--;
+            if (this.closed) {
+                this.nodeDispatcher.destroyApplicationContext();
+            }
+        });
+        this.connectionCount++;
     }
 }
 exports.HttpServer = HttpServer;

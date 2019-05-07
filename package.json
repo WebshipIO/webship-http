@@ -42,6 +42,6 @@
   "dependencies": {
     "@webnode/cdi": "^1.0.5",
     "@webnode/http": "^1.0.5",
-    "@webnode/pg-template": "^1.0.1"
+    "@webnode/pg-template": "^1.0.3"
   }
 }

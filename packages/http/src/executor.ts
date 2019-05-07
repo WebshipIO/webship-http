@@ -1,4 +1,4 @@
-import {NodeDispatcher} from '@webnode/cdi'
+import {NodeDispatcher, ApplicationContext} from '@webnode/cdi'
 import {IncomingMessage as NativeServerRequest, ServerResponse as NativeServerResponse} from 'http'
 import {Readable} from 'stream'
 import {UrlWithParsedQuery, parse as parseUrl} from 'url'
@@ -36,6 +36,7 @@ export class RequestExecutor {
     private nativeRequest: NativeServerRequest,
     private nativeResponse: NativeServerResponse,
     private nodeDispatcher: NodeDispatcher,
+    private context: ApplicationContext,
     private registry: Registry,
     private config: FormConfig
   ) {
@@ -150,7 +151,7 @@ export class RequestExecutor {
       }
       this.composeArgs(properties, args)
       for (let middleware of properties.valuesOfMiddlewares()) {
-        await Reflect.apply(middleware, instance, args) 
+        await Reflect.apply(middleware, instance, [this.request, this.response, this.context]) 
       }
       await Reflect.apply(autoMethod, instance, args) 
     }

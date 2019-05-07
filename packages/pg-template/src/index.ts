@@ -12,12 +12,14 @@ export interface QueryProperties {
   type: 'query'
   sql?: string
   filter?: (r: QueryResult) => any
+  fn?: (...args: Array<any>) => any
 }
 
 export interface TransactionProperties {
   type: 'transcation'
   sql?: string
   filter?: (r: ReadonlyArray<QueryResult>) => any
+  fn?: (...args: Array<any>) => any
 }
 
 export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
@@ -37,7 +39,7 @@ export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, 
         switch (value.type) {
         case 'query':
           if (typeof value.sql === 'string') {
-            var f = Reflect.get(classType.prototype, key)
+            value.fn = Reflect.get(classType.prototype, key)
             Reflect.defineProperty(classType.prototype, key, {
               value: async function (...args: any[]) {
                 let result = await this.pool.query(PostgresFormat.withArray((value as QueryProperties).sql, args))
@@ -48,7 +50,7 @@ export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, 
           break
         case 'transcation':
           if (typeof value.sql === 'string') {
-            var f = Reflect.get(classType.prototype, key)
+            value.fn = Reflect.get(classType.prototype, key)
             Reflect.defineProperty(classType.prototype, key, {
               value: async function (...args: any[]) {
                 let connection = await this.pool.connect()
@@ -69,6 +71,29 @@ export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, 
                 }
                 return typeof value.filter === 'function' ? (value as TransactionProperties).filter(result) : result
               }
+            })
+          }
+          break
+        }
+      }
+    }
+  }
+
+  public untransform() {
+    for (let [classType, map] of super.entries()) {
+      for (let [key, value] of map.entries()) {
+        switch (value.type) {
+        case 'query':
+          if (typeof value.sql === 'string') {
+            Reflect.defineProperty(classType.prototype, key, {
+              value: value.fn
+            })
+          }
+          break
+        case 'transcation':
+          if (typeof value.sql === 'string') {
+            Reflect.defineProperty(classType.prototype, key, {
+              value: value.fn
             })
           }
           break
