@@ -6,10 +6,7 @@ declare namespace WebNode {
     APPLICATION, SESSION, REQUEST
   }
 
-  export type SessionIdentifier = symbol
-  export type RequestIdentifier = symbol
-
-  export type Provider = (context: ApplicationContext, session?: SessionIdentifier, request?: RequestIdentifier) => ProviderInstance | Promise<ProviderInstance>
+  export type Provider = (application: ApplicationContext, session?: SessionContext, request?: RequestContext) => ProviderInstance | Promise<ProviderInstance>
   export type ProviderInstance = NonNullable<Object>
   export type ProviderKey = PropertyKey
   export type ProviderMap = Map<ProviderKey, Provider>
@@ -23,6 +20,8 @@ declare namespace WebNode {
     public get(scope: Scope, key: ProviderKey): Provider
     public delete(scope: Scope, key: ProviderKey): void
     public clear(): void
+    public size(scope: Scope): number
+    public values(scope: Scope): Iterable<Provider>
     public entries(scope: Scope): Iterable<[ProviderKey, Provider]>
   }
 
@@ -35,6 +34,7 @@ declare namespace WebNode {
     public has(node: Node<T>): boolean
     public delete(node: Node<T>): void
     public clear(): void
+    public size(): number
     public values(): Iterable<NodeInstance<T>>
     public entries(): Iterable<[Node<T>, NodeInstance<T>]>
   }
@@ -52,71 +52,57 @@ declare namespace WebNode {
     public set<T>(node: Node<T>, propertyKey: PropertyKey, parameterIndex: number, providerKey: ProviderKey, scope: Scope) : void
     public get<T>(node: Node<T>, propertyKey: PropertyKey): Array<Dependency>
     public delete<T>(node: Node<T>, propertyKey?: PropertyKey): void
-    public valuesOfDependencies<T>(node: Node<T>, propertyKey: PropertyKey): Iterable<Dependency>
-    public entriesOfDependencies<T>(): Iterable<[Node, PropertyKey, Dependency]>
+    public clear(): void
+    public size<T>(node?: Node<T>): number
+    public values<T>(node: Node<T>, propertyKey: PropertyKey): Iterable<Dependency>
+    public entries<T>(): Iterable<[Node, PropertyKey, Dependency]>
   }
 
-  export class Context {
-    public readonly providerInstanceContainer: ProviderInstanceContainer
-    public readonly nodeInstanceContainer: NodeInstanceContainer
+  export class TreeNode<T> {
+    public value: T
+    public setParent(parent: TreeNode<T>): void 
+    public getParent(): TreeNode<T>
+    public deleteParent(): void  
+    public hasParent(): boolean
+    public addChild(child?: TreeNode<T>): TreeNode<T>
+    public deleteChild(child: TreeNode<T>): void
+    public hasChild(child: TreeNode<T>): boolean
+    public * valuesOfChildren(): Iterable<TreeNode<T>>
+    public * values(): Iterable<T>
+    public sizeOfChildren(): number
+    public clearChildren(): void
   }
 
-  export class RequestContext extends Context {}
-  export class SessionContext extends Context {
-    public readonly requests: Map<RequestIdentifier, RequestContext>
+  export interface Value {
+    providerContainer: ProviderInstanceContainer
+    nodeContainer: NodeInstanceContainer
   }
 
-  export class ApplicationContext extends Context {
-    public static readonly instance: ApplicationContext
-
-    public createSessionContext(session: SessionIdentifier): void
-    public createRequestContext(session: SessionIdentifier, request: RequestIdentifier): void
-    public clearApplicationContext(): void
-    public deleteSessionContext(session: SessionIdentifier): void
-    public deleteRequestContext(session: SessionIdentifier, request: RequestIdentifier): void
-    public hasSessionContext(session: SessionIdentifier): boolean
-    public hasRequestContext(session: SessionIdentifier, request: RequestIdentifier): boolean
-    public getProviderInstanceContainerOfApplicationLocal(): ProviderInstanceContainer
-    public getNodeInstanceContainerOfApplicationLocal(): NodeInstanceContainer
-    public getProviderInstanceContainerOfSessionLocal(session: SessionIdentifier): ProviderInstanceContainer
-    public getNodeInstanceContainerOfSessionLocal(session: SessionIdentifier): NodeInstanceContainer
-    public getProviderInstanceContainerOfRequestLocal(session: SessionIdentifier, request: RequestIdentifier): ProviderInstanceContainer
-    public getNodeInstanceContainerOfRequestLocal(session: SessionIdentifier, request: RequestIdentifier): NodeInstanceContainer
-    public providerInstancesOfApplicationContext(): Iterable<ProviderInstance>
-    public nodeInstancesOfApplicationContext(): Iterable<ProviderInstance>
-    public providerInstancesOfSessionContext(session: SessionIdentifier): Iterable<ProviderInstance>
-    public nodeInstancesOfSessionContext(session: SessionIdentifier): Iterable<NodeInstance>
-    public providerInstancesOfRequestContext(session: SessionIdentifier, request: RequestIdentifier): Iterable<ProviderInstance>
-    public nodeInstancesOfRequestContext(session: SessionIdentifier, request: RequestIdentifier): Iterable<NodeInstance>
-  }
+  export type Context = TreeNode<Value>
+  export type ApplicationContext = Context
+  export type SessionContext = Context
+  export type RequestContext = Context
 
   export class NodeDispatcher {
-    public static create(
-      providerContainer: ProviderContainer, 
-      dependencyContainer: DependencyContainer,
-      context: ApplicationContext
-    ): NodeDispatcher
+    public static create(providerContainer: ProviderContainer, dependencyContainer: DependencyContainer): NodeDispatcher
 
-    constructor(providerContainer: ProviderContainer, dependencyContainer: DependencyContainer, context: ApplicationContext)
+    constructor(providerContainer: ProviderContainer, dependencyContainer: DependencyContainer)
     public check(): void
-    public genArgumentsOnApplicationLocal<T>(node: Node<T>, propertyKey: PropertyKey): Array<any>
-    public genArgumentsOnSessionLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier): Array<any>
-    public genArgumentsOnRequestLocal<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionIdentifier, request: RequestIdentifier): Array<any>
-    public applyOnApplicationLocal(instance: NodeInstance, propertyKey: PropertyKey): void
-    public applyOnSessionLocal(instance: NodeInstance, propertyKey: PropertyKey, session: SessionIdentifier): void
-    public applyOnRequestLocal(instance: NodeInstance, propertyKey: PropertyKey, session: SessionIdentifier, request: RequestIdentifier): void
-    public createApplicationContext(): void
-    public destroyApplicationContext(): void
-    public createInstanceOnApplicationLocal<T>(node: Node<T>): T
-    public getInstanceOnApplicationLocal<T>(node: Node<T>): T | Set<T>
-    public createSessionContext(): SessionIdentifier
-    public destroySessionContext(session: SessionIdentifier): void
-    public createInstanceOnSessionLocal<T>(node: Node<T>, session: SessionIdentifier): T
-    public getInstanceOnSessionLocal<T>(node: Node<T>, session: SessionIdentifier): T | Set<T>
-    public createRequestContext(session: SessionIdentifier): RequestIdentifier
-    public destroyRequestContext(session: SessionIdentifier, request: RequestIdentifier): void
-    public createInstanceOnRequestLocal<T>(node: Node<T>, session: SessionIdentifier, request: RequestIdentifier): T
-    public getInstanceOnRequestLocal<T>(node: Node<T>, session: SessionIdentifier, request: RequestIdentifier): T | Set<T>
+    public createApplicationContext(): Promise<void>
+    public createNodeOfApplicationContext<T>(node: Node<T>): Promise<T>
+    public destroyApplicationContext(): Promise<void>
+    public createSessionContext(): Promise<SessionContext>
+    public createNodeOfSessionContext<T>(node: Node<T>, session: SessionContext): Promise<T>
+    public destroySessionContext(session: SessionContext): Promise<void>
+    public createRequestContext(session: SessionContext): Promise<RequestContext>
+    public createNodeOfRequestContext<T>(node: Node<T>, request: RequestContext): Promise<T>
+    public destroyRequestContext(request: RequestContext): Promise<void>
+    public genArgumentsOfApplicationContext<T>(node: Node<T>, propertyKey: PropertyKey): Array<any>
+    public genArgumentsOfSessionContext<T>(node: Node<T>, propertyKey: PropertyKey, session: SessionContext): Array<any>
+    public genArgumentsOfRequestContext<T>(node: Node<T>, propertyKey: PropertyKey, request: RequestContext): Array<any>
+    public applyOfApplicationContext(instance: NodeInstance, propertyKey: PropertyKey): any
+    public applyOfSessionContext(instance: NodeInstance, propertyKey: PropertyKey, session: SessionContext): any
+    public applyOfRequestContext(instance: NodeInstance, propertyKey: PropertyKey, request: RequestContext): any
   }
 
   export function ApplicationScope(providerKey: ProviderKey): ParameterDecorator

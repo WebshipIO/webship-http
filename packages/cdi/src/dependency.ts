@@ -83,7 +83,7 @@ export class DependencyContainer {
     this.map.clear()
   }
 
-  public size<T>(node?: Node<T>) {
+  public size<T>(node?: Node<T>): number {
     if (arguments.length > 1) {
       if (this.map.has(node)) {
         return this.map.get(node).size

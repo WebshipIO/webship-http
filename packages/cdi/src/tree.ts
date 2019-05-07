@@ -3,9 +3,6 @@ export class TreeNode<T> {
   private children?: Set<TreeNode<T>>
   public  value: T
 
-  constructor() {
-  }
-
   public setParent(parent: TreeNode<T>) {
     this.parent = parent
   }

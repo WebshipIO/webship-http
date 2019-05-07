@@ -1,6 +1,6 @@
 import {Suite, Test, SuiteSetup, SuiteTeardown, Setup, Teardown, TestContainer} from 'jest-decorators'
-import {Scope, ApplicationScope, SessionScope, RequestScope, SessionIdentifier} from '..'
-import {ProviderContainer, DependencyContainer, ApplicationContext, NodeDispatcher} from '..'
+import {Scope, ApplicationScope, SessionScope, RequestScope} from '..'
+import {ProviderContainer, DependencyContainer, Context, NodeDispatcher} from '..'
 
 class A {
   private value: number = 100 
@@ -64,20 +64,28 @@ class ApplicationTest {
   private dispatcher: NodeDispatcher
 
   @SuiteSetup
-  private suiteSetup() {
-    this.dispatcher = NodeDispatcher.create(
-      ProviderContainer.instance, DependencyContainer.instance, new ApplicationContext())
+  private async setupProviders() {
     ProviderContainer.instance.set(Scope.APPLICATION, 'a', () => new A)
     ProviderContainer.instance.set(Scope.SESSION,     'a', () => new A)
     ProviderContainer.instance.set(Scope.REQUEST,     'a', () => new A)
+  }
+
+  @SuiteSetup
+  private async setupDispatcher() {
+    this.dispatcher = NodeDispatcher.create(
+      ProviderContainer.instance, DependencyContainer.instance)
     this.dispatcher.check()
     this.dispatcher.createApplicationContext()
-    this.b = this.dispatcher.createInstanceOnApplicationLocal(B)
+    this.b = await this.dispatcher.createNodeOfApplicationContext(B)
   }
 
   @SuiteTeardown
-  private teardown() {
+  private teardownDispatcher() {
     this.b = null
+  }
+
+  @SuiteTeardown
+  private teardownProviders() {
     ProviderContainer.instance.delete(Scope.APPLICATION, 'a')
     ProviderContainer.instance.delete(Scope.SESSION,     'a')
     ProviderContainer.instance.delete(Scope.REQUEST,     'a')
@@ -95,7 +103,7 @@ class ApplicationTest {
 
   @Test
   private a2() {
-    this.dispatcher.applyOnApplicationLocal(this.b, 'setA2')
+    this.dispatcher.applyOfApplicationContext(this.b, 'setA2')
     expect(this.b.getA2().getValue()).toBe(100)
   }
 
@@ -115,8 +123,8 @@ class ApplicationTest {
   }
 
   @Test
-  private destroy() {
-    this.dispatcher.destroyApplicationContext()
+  private async destroy() {
+    await this.dispatcher.destroyApplicationContext()
     expect(this.b.getA1().getValue()).toBe(0)
     expect(this.b.getA2().getValue()).toBe(0)
     expect(this.b.getValue()).toBe(0)
@@ -126,25 +134,33 @@ class ApplicationTest {
 @Suite
 class SessionTest {
   private b: B
-  private session: SessionIdentifier
+  private session: Context
   private dispatcher: NodeDispatcher
 
   @SuiteSetup
-  private suiteSetup() {
-    this.dispatcher = NodeDispatcher.create(
-      ProviderContainer.instance, DependencyContainer.instance, new ApplicationContext())
+  private async setupProviders() {
     ProviderContainer.instance.set(Scope.APPLICATION, 'a', () => new A)
     ProviderContainer.instance.set(Scope.SESSION,     'a', () => new A)
     ProviderContainer.instance.set(Scope.REQUEST,     'a', () => new A)
+  }
+
+  @SuiteSetup
+  private async setupDispatcher() {
+    this.dispatcher = NodeDispatcher.create(
+      ProviderContainer.instance, DependencyContainer.instance)
     this.dispatcher.check()
     this.dispatcher.createApplicationContext()
-    this.session = this.dispatcher.createSessionContext()
-    this.b = this.dispatcher.createInstanceOnSessionLocal(B, this.session)
+    this.session = await this.dispatcher.createSessionContext()
+    this.b = await this.dispatcher.createNodeOfSessionContext(B, this.session)
   }
 
   @SuiteTeardown
-  private teardown() {
+  private teardownDispatcher() {
     this.b = null
+  }
+
+  @SuiteTeardown
+  private teardownProviders() {
     ProviderContainer.instance.delete(Scope.APPLICATION, 'a')
     ProviderContainer.instance.delete(Scope.SESSION,     'a')
     ProviderContainer.instance.delete(Scope.REQUEST,     'a')
@@ -162,7 +178,7 @@ class SessionTest {
 
   @Test
   private a2() {
-    this.dispatcher.applyOnApplicationLocal(this.b, 'setA2')
+    this.dispatcher.applyOfApplicationContext(this.b, 'setA2')
     expect(this.b.getA2().getValue()).toBe(100)
   }
 
@@ -187,15 +203,15 @@ class SessionTest {
   }
 
   @Test
-  private destroySession() {
-    this.dispatcher.destroySessionContext(this.session) 
+  private async destroySession() {
+    await this.dispatcher.destroySessionContext(this.session) 
     expect(this.b.getA3().getValue()).toBe(0)
     expect(this.b.getValue()).toBe(0)
   }
 
   @Test
-  private destroyApplication() {
-    this.dispatcher.destroyApplicationContext()
+  private async destroyApplication() {
+    await this.dispatcher.destroyApplicationContext()
     expect(this.b.getA1().getValue()).toBe(0)
     expect(this.b.getA2().getValue()).toBe(0)
   }
@@ -204,30 +220,38 @@ class SessionTest {
 @Suite
 class RequestTest {
   private b: B
-  private session: SessionIdentifier
-  private request: SessionIdentifier
+  private session: Context
+  private request: Context
   private dispatcher: NodeDispatcher
 
   @SuiteSetup
-  private suiteSetup() {
-    this.dispatcher = NodeDispatcher.create(
-      ProviderContainer.instance, DependencyContainer.instance, new ApplicationContext())
+  private async setupProviders() {
     ProviderContainer.instance.set(Scope.APPLICATION, 'a', () => new A)
     ProviderContainer.instance.set(Scope.SESSION,     'a', () => new A)
     ProviderContainer.instance.set(Scope.REQUEST,     'a', () => new A)
+  }
+
+  @SuiteSetup
+  private async setupDispatcher() {
+    this.dispatcher = NodeDispatcher.create(
+      ProviderContainer.instance, DependencyContainer.instance)
     this.dispatcher.check()
     this.dispatcher.createApplicationContext()
-    this.session = this.dispatcher.createSessionContext()
-    this.request = this.dispatcher.createRequestContext(this.session)
-    this.b = this.dispatcher.createInstanceOnRequestLocal(B, this.session, this.request)
+    this.session = await this.dispatcher.createSessionContext()
+    this.request = await this.dispatcher.createRequestContext(this.session)
+    this.b = await this.dispatcher.createNodeOfRequestContext(B, this.request)
   }
 
   @SuiteTeardown
-  private teardown() {
+  private teardownDispatcher() {
     this.b = null
+  }
+
+  @SuiteTeardown
+  private teardownProviders() {
     ProviderContainer.instance.delete(Scope.APPLICATION, 'a')
-    ProviderContainer.instance.delete(Scope.SESSION, 'a')
-    ProviderContainer.instance.delete(Scope.REQUEST, 'a')
+    ProviderContainer.instance.delete(Scope.SESSION,     'a')
+    ProviderContainer.instance.delete(Scope.REQUEST,     'a')
   }
 
   @Test
@@ -242,7 +266,7 @@ class RequestTest {
 
   @Test
   private a2() {
-    this.dispatcher.applyOnApplicationLocal(this.b, 'setA2')
+    this.dispatcher.applyOfApplicationContext(this.b, 'setA2')
     expect(this.b.getA2().getValue()).toBe(100)
   }
 
@@ -253,7 +277,7 @@ class RequestTest {
 
   @Test
   private a4() {
-    this.dispatcher.applyOnRequestLocal(this.b, 'setA4', this.session, this.request)
+    this.dispatcher.applyOfRequestContext(this.b, 'setA4', this.request)
     expect(this.b.getA4().getValue()).toBe(100)
   }
 
@@ -278,21 +302,21 @@ class RequestTest {
   }
 
   @Test
-  private destroyRequest() {
-    this.dispatcher.destroyRequestContext(this.session, this.request) 
+  private async destroyRequest() {
+    await this.dispatcher.destroyRequestContext(this.request) 
     expect(this.b.getA4().getValue()).toBe(0)
     expect(this.b.getValue()).toBe(0)
   }
 
   @Test
-  private destroySession() {
-    this.dispatcher.destroySessionContext(this.session) 
+  private async destroySession() {
+    await this.dispatcher.destroySessionContext(this.session) 
     expect(this.b.getA3().getValue()).toBe(0)
   }
 
   @Test
-  private destroyApplication() {
-    this.dispatcher.destroyApplicationContext()
+  private async destroyApplication() {
+    await this.dispatcher.destroyApplicationContext()
     expect(this.b.getA1().getValue()).toBe(0)
     expect(this.b.getA2().getValue()).toBe(0)
   }

@@ -11,8 +11,7 @@ class NodeInstanceContainer {
                 value.add(instance);
             }
             else {
-                this.map.set(node, new Set());
-                this.map.get(node).add(value);
+                this.map.set(node, new Set().add(value));
             }
         }
         else {
@@ -32,6 +31,9 @@ class NodeInstanceContainer {
     clear() {
         this.map.clear();
     }
+    size() {
+        return this.map.size;
+    }
     *values() {
         for (let value of this.map.values()) {
             if (value instanceof Set) {
@@ -47,8 +49,8 @@ class NodeInstanceContainer {
     *entries() {
         for (let [key, value] of this.map.entries()) {
             if (value instanceof Set) {
-                for (let a of value) {
-                    yield [key, a];
+                for (let v of value) {
+                    yield [key, v];
                 }
             }
             else {

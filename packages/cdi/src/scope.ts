@@ -7,6 +7,3 @@
 export enum Scope {
   APPLICATION, SESSION, REQUEST
 }
-
-export type SessionIdentifier = symbol
-export type RequestIdentifier = symbol

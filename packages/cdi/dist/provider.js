@@ -30,8 +30,16 @@ class ProviderContainer {
         this.sessionMap.clear();
         this.requestMap.clear();
     }
+    size(scope) {
+        return this.getScopeMap(scope).size;
+    }
+    *values(scope) {
+        for (let item of this.getScopeMap(scope).values()) {
+            yield item;
+        }
+    }
     *entries(scope) {
-        for (let item of this.getScopeMap(scope)) {
+        for (let item of this.getScopeMap(scope).entries()) {
             yield item;
         }
     }

@@ -7,7 +7,7 @@ __export(require("./scope"));
 __export(require("./dependency"));
 __export(require("./provider"));
 __export(require("./node"));
-__export(require("./context"));
+__export(require("./tree"));
 __export(require("./dispatch"));
 __export(require("./decorators"));
 

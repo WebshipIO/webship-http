@@ -21,16 +21,20 @@ class DependencyContainer {
             scope: scope,
             parameterIndex: parameterIndex
         };
-        if (!this.map.get(node).has(propertyKey)) {
-            this.map.get(node).set(propertyKey, []);
+        let submap = this.map.get(node);
+        if (!submap.has(propertyKey)) {
+            submap.set(propertyKey, []);
         }
-        this.map.get(node).get(propertyKey)[parameterIndex] = dependency;
+        submap.get(propertyKey)[parameterIndex] = dependency;
     }
     get(node, propertyKey) {
         if (this.map.has(node) && this.map.get(node).has(propertyKey)) {
             return this.map.get(node).get(propertyKey);
         }
         return [];
+    }
+    has(node, propertyKey) {
+        return this.map.has(node) && this.map.get(node).has(propertyKey);
     }
     delete(node, propertyKey) {
         if (this.map.has(node)) {
@@ -44,7 +48,23 @@ class DependencyContainer {
             }
         }
     }
-    *valuesOfDependencies(node, propertyKey) {
+    clear() {
+        this.map.clear();
+    }
+    size(node) {
+        if (arguments.length > 1) {
+            if (this.map.has(node)) {
+                return this.map.get(node).size;
+            }
+            else {
+                return 0;
+            }
+        }
+        else {
+            return this.map.size;
+        }
+    }
+    *values(node, propertyKey) {
         if (this.map.has(node)) {
             let propertyKeyMap = this.map.get(node);
             if (propertyKeyMap.has(propertyKey)) {
@@ -56,7 +76,7 @@ class DependencyContainer {
             }
         }
     }
-    *entriesOfDependencies() {
+    *entries() {
         for (let [node, propertyKeyMap] of this.map.entries()) {
             for (let [propertyKey, dependencies] of propertyKeyMap.entries()) {
                 for (let dependency of dependencies) {
