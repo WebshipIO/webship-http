@@ -24,8 +24,8 @@ declare namespace WebNode {
     fn?: (...args: Array<any>) => any
   }
 
-  export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
-    public static readonly instance: SQLTemplateContainer
+  export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
+    public static readonly instance: PgTemplateContainer
     public transform(): void
     public untransform(): void
   }

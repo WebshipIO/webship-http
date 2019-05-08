@@ -15,12 +15,12 @@ class Repository {
     }
 }
 exports.Repository = Repository;
-class SQLTemplateContainer extends Map {
+class PgTemplateContainer extends Map {
     static get instance() {
-        if (SQLTemplateContainer.sInstance === undefined) {
-            SQLTemplateContainer.sInstance = new SQLTemplateContainer();
+        if (PgTemplateContainer.sInstance === undefined) {
+            PgTemplateContainer.sInstance = new PgTemplateContainer();
         }
-        return SQLTemplateContainer.sInstance;
+        return PgTemplateContainer.sInstance;
     }
     transform() {
         for (let [classType, map] of super.entries()) {
@@ -96,21 +96,21 @@ class SQLTemplateContainer extends Map {
         }
     }
 }
-exports.SQLTemplateContainer = SQLTemplateContainer;
+exports.PgTemplateContainer = PgTemplateContainer;
 function Query(sql) {
     return function (target, propertyKey) {
         let classType = target.constructor;
-        if (!SQLTemplateContainer.instance.has(classType)) {
-            SQLTemplateContainer.instance.set(classType, new Map());
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
         }
-        if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-            SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
                 type: 'query',
                 sql: sql
             });
         }
         else {
-            SQLTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
+            PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
         }
     };
 }
@@ -118,17 +118,17 @@ exports.Query = Query;
 function QueryFilter(filter) {
     return function (target, propertyKey) {
         let classType = target.constructor;
-        if (!SQLTemplateContainer.instance.has(classType)) {
-            SQLTemplateContainer.instance.set(classType, new Map());
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
         }
-        if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-            SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
                 type: 'query',
                 filter: filter
             });
         }
         else {
-            SQLTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
+            PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
         }
     };
 }
@@ -136,17 +136,17 @@ exports.QueryFilter = QueryFilter;
 function Transaction(sql) {
     return function (target, propertyKey) {
         let classType = target.constructor;
-        if (!SQLTemplateContainer.instance.has(classType)) {
-            SQLTemplateContainer.instance.set(classType, new Map());
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
         }
-        if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-            SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
                 type: 'transcation',
                 sql: sql
             });
         }
         else {
-            SQLTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
+            PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
         }
     };
 }
@@ -154,17 +154,17 @@ exports.Transaction = Transaction;
 function TransactionFilter(filter) {
     return function (target, propertyKey) {
         let classType = target.constructor;
-        if (!SQLTemplateContainer.instance.has(classType)) {
-            SQLTemplateContainer.instance.set(classType, new Map());
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
         }
-        if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-            SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
                 type: 'transcation',
                 filter: filter
             });
         }
         else {
-            SQLTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
+            PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
         }
     };
 }

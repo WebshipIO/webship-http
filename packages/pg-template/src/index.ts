@@ -22,16 +22,15 @@ export interface TransactionProperties {
   fn?: (...args: Array<any>) => any
 }
 
-export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
-  private static sInstance: SQLTemplateContainer
+export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
+  private static sInstance: PgTemplateContainer
 
-  public static get instance(): SQLTemplateContainer {
-    if (SQLTemplateContainer.sInstance === undefined) {
-      SQLTemplateContainer.sInstance = new SQLTemplateContainer()
+  public static get instance(): PgTemplateContainer {
+    if (PgTemplateContainer.sInstance === undefined) {
+      PgTemplateContainer.sInstance = new PgTemplateContainer()
     }
-    return SQLTemplateContainer.sInstance
+    return PgTemplateContainer.sInstance
   }
-
 
   public transform() {
     for (let [classType, map] of super.entries()) {
@@ -106,16 +105,16 @@ export class SQLTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, 
 export function Query(sql: string): PropertyDecorator {
   return function (target: Repository, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
-    if (!SQLTemplateContainer.instance.has(classType)) {
-      SQLTemplateContainer.instance.set(classType, new Map())
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
     }
-    if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-      SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
         type: 'query',
         sql: sql
       })
     } else {
-      SQLTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
+      PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
     }
   }
 }
@@ -123,16 +122,16 @@ export function Query(sql: string): PropertyDecorator {
 export function QueryFilter<T>(filter: (r: QueryResult) => T): PropertyDecorator {
   return function (target: Object, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
-    if (!SQLTemplateContainer.instance.has(classType)) {
-      SQLTemplateContainer.instance.set(classType, new Map())
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
     }
-    if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-      SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
         type: 'query',
         filter: filter
       })
     } else {
-      SQLTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
+      PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
     }
   }
 }
@@ -140,16 +139,16 @@ export function QueryFilter<T>(filter: (r: QueryResult) => T): PropertyDecorator
 export function Transaction(sql: string): PropertyDecorator {
   return function (target: Object, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
-    if (!SQLTemplateContainer.instance.has(classType)) {
-      SQLTemplateContainer.instance.set(classType, new Map())
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
     }
-    if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-      SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
         type: 'transcation',
         sql: sql
       })
     } else {
-      SQLTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
+      PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
     }
   }
 }
@@ -157,16 +156,16 @@ export function Transaction(sql: string): PropertyDecorator {
 export function TransactionFilter<T>(filter: (r: ReadonlyArray<QueryResult>) => T): PropertyDecorator {
   return function (target: Object, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
-    if (!SQLTemplateContainer.instance.has(classType)) {
-      SQLTemplateContainer.instance.set(classType, new Map())
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
     }
-    if (!SQLTemplateContainer.instance.get(classType).has(propertyKey)) {
-      SQLTemplateContainer.instance.get(classType).set(propertyKey, {
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
         type: 'transcation',
         filter: filter
       })
     } else {
-      SQLTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
+      PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
     }
   }
 }
