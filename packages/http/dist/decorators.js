@@ -93,10 +93,10 @@ function Res(target, propertyKey, parameterIndex) {
     return ParameterMapping(automethod_1.ParameterPoint.RESPONSE)(target, propertyKey, parameterIndex);
 }
 exports.Res = Res;
-function Uri(target, propertyKey, parameterIndex) {
-    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_URI)(target, propertyKey, parameterIndex);
+function Url(target, propertyKey, parameterIndex) {
+    return ParameterMapping(automethod_1.ParameterPoint.REQUEST_URL)(target, propertyKey, parameterIndex);
 }
-exports.Uri = Uri;
+exports.Url = Url;
 function Headers(target, propertyKey, parameterIndex) {
     return ParameterMapping(automethod_1.ParameterPoint.REQUEST_HEADERS)(target, propertyKey, parameterIndex);
 }

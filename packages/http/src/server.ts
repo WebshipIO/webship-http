@@ -21,7 +21,7 @@
 import {Socket, AddressInfo} from 'net'
 import {IncomingMessage, ServerResponse, Server, createServer} from 'http'
 import {Scope, ProviderKey, Provider, ProviderInstance, ProviderContainer, DependencyContainer, NodeDispatcher} from '@webnode/cdi'
-import {ApplicationContext, SessionIdentifier, RequestIdentifier} from '@webnode/cdi'
+import {ApplicationContext, SessionContext, RequestContext} from '@webnode/cdi'
 import {HttpError} from './error'
 import {ServerConfig} from './config'
 import {Registry} from './registry'
@@ -32,51 +32,18 @@ export class HttpServer {
     return new HttpServer(config)
   }
 
-  private context = new ApplicationContext()
-  private nodeDispatcher: NodeDispatcher = new NodeDispatcher(
-      ProviderContainer.instance, DependencyContainer.instance, this.context)
-  private config: ServerConfig
+  private nodeDispatcher: NodeDispatcher = new NodeDispatcher(ProviderContainer.instance, DependencyContainer.instance)
   private server: Server = createServer()
   private closed: boolean = true
   private connectionCount: number = 0
+  private config: ServerConfig
+  private context: ApplicationContext
 
   constructor(config?: ServerConfig) {
     if (typeof config !== 'object' || config === null) {
       config = Object.create(null)
     }
     this.config = config
-  }
-
-  public registerProvider(scope: Scope, key: ProviderKey, provider: Provider) {
-    ProviderContainer.instance.set(scope, key, provider)
-  }
-
-  public unregisterProvider(scope: Scope, key: ProviderKey) {
-    ProviderContainer.instance.delete(scope, key)
-  }
-
-  public getApplicationScopeProviderInstance(key: ProviderKey): ProviderInstance {
-    return this.context.getProviderInstanceContainerOfApplicationLocal().get(key)
-  }
-
-  public hasApplicationScopeProviderInstance(key: ProviderKey): boolean {
-    return this.context.getProviderInstanceContainerOfApplicationLocal().has(key)
-  }
-
-  public getSessionScopeProviderInstance(key: ProviderKey, sessionIdent: SessionIdentifier): ProviderInstance {
-    return this.context.getProviderInstanceContainerOfSessionLocal(sessionIdent).get(key)
-  }
-
-  public hasSessionScopeProviderInstance(key: ProviderKey, sessionIdent: SessionIdentifier): ProviderInstance {
-    return this.context.getProviderInstanceContainerOfSessionLocal(sessionIdent).has(key)
-  }
-
-  public getRequestScopeProviderInstance(key: ProviderKey, sessionIdent: SessionIdentifier, requestIdent: RequestIdentifier): ProviderInstance {
-    return this.context.getProviderInstanceContainerOfRequestLocal(sessionIdent, requestIdent).get(key)
-  }
-
-  public hasRequestScopeProviderInstance(key: ProviderKey, sessionIdent: SessionIdentifier, requestIdent: RequestIdentifier): ProviderInstance {
-    return this.context.getProviderInstanceContainerOfRequestLocal(sessionIdent, requestIdent).has(key)
   }
 
   public async serve() {
@@ -96,43 +63,43 @@ export class HttpServer {
     }
     this.server.on('connection', (connection) => this.prepareSessionContext(connection))
     this.server.on('request', (req, res) => new RequestExecutor(req, res, this.nodeDispatcher, this.context, Registry.instance, this.config).exec())
-    this.server.on('close', () => {
-      this.closed = true
-      if (this.connectionCount === 0) {
-        this.nodeDispatcher.destroyApplicationContext()
-      }
-    })
-    this.prepareApplicationContext()
+    await this.prepareApplicationContext()
     await new Promise((complete, fail) => this.server.listen(port, hostname, complete))
     this.closed = false
   }
 
   public async close() {
-    await new Promise((complete, fail) => this.server.close(complete))
+    if (!this.closed) {
+      await new Promise((complete, fail) => this.server.close(complete))
+      this.closed = true
+      if (this.connectionCount === 0) {
+        await this.nodeDispatcher.destroyApplicationContext()
+      }
+    }
   }
 
   public address(): AddressInfo {
     return this.server.address() as AddressInfo
   }
 
-  private prepareApplicationContext() {
-    this.nodeDispatcher.createApplicationContext()
+  private async prepareApplicationContext() {
+    this.context = await this.nodeDispatcher.createApplicationContext()
     for (let node of Registry.instance.valuesOfEventNodes()) {
-      this.nodeDispatcher.createInstanceOnApplicationLocal(node) 
+      await this.nodeDispatcher.createNodeOfApplicationContext(node) 
     }
   }
 
-  private prepareSessionContext(connection: Socket) {
-    let session = this.nodeDispatcher.createSessionContext()
+  private async prepareSessionContext(connection: Socket) {
+    let session = await this.nodeDispatcher.createSessionContext()
     for (let node of Registry.instance.valuesOfRouteNodes()) {
-      this.nodeDispatcher.createInstanceOnSessionLocal(node, session) // Controller Node Instance 一定只有一个
+      await this.nodeDispatcher.createNodeOfSessionContext(node, session) // Controller Node Instance 一定只有一个
     }
-    (connection as any).__session__ = session
-    connection.on('close', () => {
-      this.nodeDispatcher.destroySessionContext(session)
+    (connection as any).__webnode_http_session__ = session
+    connection.on('close', async () => {
+      await this.nodeDispatcher.destroySessionContext(session)
       this.connectionCount--
       if (this.closed) {
-        this.nodeDispatcher.destroyApplicationContext()
+        await this.nodeDispatcher.destroyApplicationContext()
       }
     })
     this.connectionCount++

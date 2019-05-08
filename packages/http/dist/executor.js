@@ -12,7 +12,6 @@ const stream_1 = require("stream");
 const url_1 = require("url");
 const formidable_1 = require("formidable");
 const error_1 = require("./error");
-const request_1 = require("./request");
 const response_1 = require("./response");
 const automethod_1 = require("./automethod");
 const event_1 = require("./event");
@@ -28,22 +27,26 @@ function hasFormData(headerKey) {
         hasContent(headerKey, "application/x-www-form-urlencoded");
 }
 class RequestExecutor {
-    constructor(nativeRequest, nativeResponse, nodeDispatcher, context, registry, config) {
+    constructor(nativeRequest, nativeResponse, nodeDispatcher, applicationContext, registry, config) {
         this.nativeRequest = nativeRequest;
         this.nativeResponse = nativeResponse;
         this.nodeDispatcher = nodeDispatcher;
-        this.context = context;
+        this.applicationContext = applicationContext;
         this.registry = registry;
         this.config = config;
-        this.request = new request_1.ServerRequest();
-        this.response = new response_1.ServerResponse();
+        this.request = Object.create(null);
+        this.response = new response_1.ServerResponseImpl();
         this.ended = false;
         let request = this.request;
-        request.uri = url_1.parse(decodeURIComponent(nativeRequest.url), true);
-        request.method = (request.uri.query.__method ? request.uri.query.__method : nativeRequest.method).toUpperCase();
+        request.httpVersion = nativeRequest.httpVersion;
+        request.httpVersionMajor = nativeRequest.httpVersionMajor;
+        request.httpVersionMinor = nativeRequest.httpVersionMinor;
+        request.url = url_1.parse(decodeURIComponent(nativeRequest.url), true);
+        request.method = (request.url.query.__method ? request.url.query.__method : nativeRequest.method).toUpperCase();
         request.headers = nativeRequest.headers;
-        request.sessionIdent = nativeRequest.connection.__session__;
-        [this.route, request.params] = this.registry.getRoute(request.method, request.uri.pathname);
+        request.applicationContext = applicationContext;
+        request.sessionContext = nativeRequest.connection.__webnode_http_session__;
+        [this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname);
     }
     parseCharSequence() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -99,18 +102,18 @@ class RequestExecutor {
     }
     prepareContext() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.request.requestIdent = this.nodeDispatcher.createRequestContext(this.request.sessionIdent);
+            this.request.requestContext = yield this.nodeDispatcher.createRequestContext(this.request.sessionContext);
             this.nativeResponse.on('finish', () => __awaiter(this, void 0, void 0, function* () {
                 this.ended = true;
                 for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_END)) {
                     let properties = this.registry.getAutoMethodProperties(autoMethod);
                     let node = properties.getNode();
-                    let args = this.nodeDispatcher.genArgumentsOnRequestLocal(node, autoMethod.name, this.request.sessionIdent, this.request.requestIdent);
-                    let instance = this.nodeDispatcher.getInstanceOnApplicationLocal(node);
+                    let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
+                    let instance = this.request.applicationContext.value.nodeContainer.get(node);
                     this.composeArgs(properties, args);
                     yield Reflect.apply(autoMethod, instance, args);
                 }
-                this.nodeDispatcher.destroyRequestContext(this.request.sessionIdent, this.request.requestIdent);
+                yield this.nodeDispatcher.destroyRequestContext(this.request.requestContext);
             }));
             this.nativeResponse.on('error', (error) => this.error = error);
             this.nativeRequest.on('error', (error) => this.error = error);
@@ -120,19 +123,19 @@ class RequestExecutor {
                     for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_ERROR)) {
                         let properties = this.registry.getAutoMethodProperties(autoMethod);
                         let node = properties.getNode();
-                        let args = this.nodeDispatcher.genArgumentsOnRequestLocal(node, autoMethod.name, this.request.sessionIdent, this.request.requestIdent);
-                        let instance = this.nodeDispatcher.getInstanceOnApplicationLocal(node);
+                        let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
+                        let instance = this.request.applicationContext.value.nodeContainer.get(node);
                         this.composeArgs(properties, args);
                         yield Reflect.apply(autoMethod, instance, args);
                     }
-                    this.nodeDispatcher.destroyRequestContext(this.request.sessionIdent, this.request.requestIdent);
+                    yield this.nodeDispatcher.destroyRequestContext(this.request.requestContext);
                 }
             }));
             for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_START)) {
                 let properties = this.registry.getAutoMethodProperties(autoMethod);
                 let node = properties.getNode();
-                let args = this.nodeDispatcher.genArgumentsOnRequestLocal(node, autoMethod.name, this.request.sessionIdent, this.request.requestIdent);
-                let instance = this.nodeDispatcher.getInstanceOnApplicationLocal(node);
+                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
+                let instance = this.request.applicationContext.value.nodeContainer.get(node);
                 this.composeArgs(properties, args);
                 yield Reflect.apply(autoMethod, instance, args);
             }
@@ -143,21 +146,21 @@ class RequestExecutor {
             for (let autoMethod of this.route.valuesOfAutoMethods()) {
                 let properties = this.registry.getAutoMethodProperties(autoMethod);
                 let node = properties.getNode();
-                let args = this.nodeDispatcher.genArgumentsOnRequestLocal(node, autoMethod.name, this.request.sessionIdent, this.request.requestIdent);
-                let instance = this.nodeDispatcher.getInstanceOnSessionLocal(node, this.request.sessionIdent);
+                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
+                let instance = this.request.sessionContext.value.nodeContainer.get(node);
                 if (this.registry.hasAutoMethodPayload(autoMethod)) {
                     this.response.status = this.registry.getAutoMethodPayload(autoMethod).getResponseStatus();
                 }
                 this.composeArgs(properties, args);
                 for (let middleware of properties.valuesOfMiddlewares()) {
-                    yield Reflect.apply(middleware, instance, [this.request, this.response, this.context]);
+                    yield Reflect.apply(middleware, instance, [this.request, this.response]);
                 }
                 yield Reflect.apply(autoMethod, instance, args);
             }
         });
     }
     send() {
-        this.nativeResponse.writeHead(this.response.status, this.response.headers);
+        this.nativeResponse.writeHead(this.response.status, this.response.getHeaders());
         if (this.response.body === undefined || this.response.body === null) {
             this.nativeResponse.end();
         }
@@ -209,11 +212,11 @@ class RequestExecutor {
                 case automethod_1.ParameterPoint.RESPONSE:
                     args[index] = this.response;
                     break;
-                case automethod_1.ParameterPoint.REQUEST_URI:
-                    args[index] = this.request.uri;
+                case automethod_1.ParameterPoint.REQUEST_URL:
+                    args[index] = this.request.url;
                     break;
                 case automethod_1.ParameterPoint.REQUEST_QUERY:
-                    args[index] = this.request.uri.query;
+                    args[index] = this.request.url.query;
                     break;
                 case automethod_1.ParameterPoint.REQUEST_HEADERS:
                     args[index] = this.nativeRequest.headers;

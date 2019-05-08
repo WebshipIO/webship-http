@@ -52,56 +52,56 @@ __decorate([
     __2.Post('/'),
     __param(0, __3.Res),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "create", null);
 __decorate([
     __2.Get('/:id'),
     __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "get", null);
 __decorate([
     __2.Put('/:id/value'),
     __param(0, __3.Res), __param(1, __3.Params), __param(2, __3.ReqBody),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "update", null);
 __decorate([
     __2.Delete('/:id'),
     __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "delete", null);
 __decorate([
     __2.Head('/'),
     __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "head", null);
 __decorate([
     __2.Options('/'),
     __param(0, __3.Res), __param(1, __3.Params),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "options", null);
 __decorate([
     __2.Trace('/'),
     __param(0, __3.Res), __param(1, __3.Params), __param(2, __3.ReqBody),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse, Object, Object]),
+    __metadata("design:paramtypes", [Object, Object, Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "trace", null);
 Home = __decorate([
     __2.Controller
 ], Home);
 let ServerTest = class ServerTest {
-    suiteSetup() {
+    setup() {
         return __awaiter(this, void 0, void 0, function* () {
             this.app = __1.HttpServer.create();
             yield this.app.serve();
@@ -166,7 +166,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ServerTest.prototype, "suiteSetup", null);
+], ServerTest.prototype, "setup", null);
 __decorate([
     jest_decorators_1.SuiteTeardown,
     __metadata("design:type", Function),

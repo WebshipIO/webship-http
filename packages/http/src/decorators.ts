@@ -108,8 +108,8 @@ export function Res(target: Object, propertyKey: PropertyKey, parameterIndex: nu
   return ParameterMapping(ParameterPoint.RESPONSE)(target, propertyKey, parameterIndex)
 }
 
-export function Uri(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
-  return ParameterMapping(ParameterPoint.REQUEST_URI)(target, propertyKey, parameterIndex)
+export function Url(target: Object, propertyKey: PropertyKey, parameterIndex: number) {
+  return ParameterMapping(ParameterPoint.REQUEST_URL)(target, propertyKey, parameterIndex)
 }
 
 export function Headers(target: Object, propertyKey: PropertyKey, parameterIndex: number) {

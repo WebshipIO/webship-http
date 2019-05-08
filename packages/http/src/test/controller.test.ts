@@ -3,7 +3,7 @@ import {Suite, Test, SuiteSetup, SuiteTeardown, Setup, Teardown, TestContainer} 
 import {ApplicationScope, SessionScope, RequestScope, Scope, ProviderContainer} from '@webnode/cdi'
 import {HttpServer, ServerRequest, ServerResponse, RePathnameParams} from '..'
 import {Controller, Get, Post, Put, Delete, Head, Options, Trace, Connect} from '..'
-import {ParameterMapping, Req, Res, Uri, Headers, Params, Query, ReqBody} from '..'
+import {ParameterMapping, Req, Res, Url, Headers, Params, Query, ReqBody} from '..'
 import {RequestLifecycle, RequestStart, RequestEnd, RequestError} from '..'
 
 interface UpdateBody {
@@ -58,7 +58,7 @@ class ServerTest {
   private port: number
 
   @SuiteSetup
-  private async suiteSetup() {
+  private async setup() {
     this.app = HttpServer.create()
     await this.app.serve()
     this.port = this.app.address().port

@@ -78,15 +78,14 @@ __decorate([
     __param(0, __3.Res),
     __param(1, cdi_1.ApplicationScope('a')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse,
-        A]),
+    __metadata("design:paramtypes", [Object, A]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "getA", null);
 Home = __decorate([
     __2.Controller
 ], Home);
 let ServerTest = class ServerTest {
-    suiteSetup() {
+    setup() {
         return __awaiter(this, void 0, void 0, function* () {
             cdi_1.ProviderContainer.instance.set(cdi_1.Scope.APPLICATION, 'a', () => new A);
             this.agent = new http_1.Agent({ keepAlive: true });
@@ -119,7 +118,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ServerTest.prototype, "suiteSetup", null);
+], ServerTest.prototype, "setup", null);
 __decorate([
     jest_decorators_1.SuiteTeardown,
     __metadata("design:type", Function),

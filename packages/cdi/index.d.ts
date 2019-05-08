@@ -67,8 +67,8 @@ declare namespace WebNode {
     public addChild(child?: TreeNode<T>): TreeNode<T>
     public deleteChild(child: TreeNode<T>): void
     public hasChild(child: TreeNode<T>): boolean
-    public * valuesOfChildren(): Iterable<TreeNode<T>>
-    public * values(): Iterable<T>
+    public valuesOfChildren(): Iterable<TreeNode<T>>
+    public values(): Iterable<T>
     public sizeOfChildren(): number
     public clearChildren(): void
   }
@@ -88,7 +88,7 @@ declare namespace WebNode {
 
     constructor(providerContainer: ProviderContainer, dependencyContainer: DependencyContainer)
     public check(): void
-    public createApplicationContext(): Promise<void>
+    public createApplicationContext(): Promise<ApplicationContext>
     public createNodeOfApplicationContext<T>(node: Node<T>): Promise<T>
     public destroyApplicationContext(): Promise<void>
     public createSessionContext(): Promise<SessionContext>

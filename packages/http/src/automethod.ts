@@ -4,13 +4,17 @@ import {ServerResponse, HttpStatus} from './response'
 
 export enum ParameterPoint {
   REQUEST, 
+  REQUEST_URL, 
+  REQUEST_QUERY, 
+  REQUEST_HEADERS, 
+  REQUEST_PARAMS, 
+  REQUEST_BODY, 
   RESPONSE, 
-  REQUEST_URI, REQUEST_QUERY, REQUEST_HEADERS, REQUEST_PARAMS, REQUEST_BODY, 
   ERROR
 }
 
 export type AutoMethod = (...args: Array<any>) => void | Promise<void>
-export type Middleware = (req: ServerRequest, res: ServerResponse, context: ApplicationContext) => void | Promise<void>
+export type Middleware = (req: ServerRequest, res: ServerResponse) => void | Promise<void>
 
 export class AutoMethodProperties {
   private parameters: Map<number, ParameterPoint>

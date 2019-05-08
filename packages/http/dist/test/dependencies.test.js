@@ -61,14 +61,14 @@ __decorate([
     __2.Get('/app'),
     __param(0, __3.Res),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "getApp", null);
 __decorate([
     __2.Get('/'),
     __param(0, __3.Res),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [__1.ServerResponse]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], Home.prototype, "get", null);
 Home = __decorate([
@@ -81,7 +81,7 @@ Home = __decorate([
         A])
 ], Home);
 let ServerTest = class ServerTest {
-    suiteSetup() {
+    setup() {
         return __awaiter(this, void 0, void 0, function* () {
             cdi_1.ProviderContainer.instance.set(cdi_1.Scope.APPLICATION, 'a', () => new A);
             cdi_1.ProviderContainer.instance.set(cdi_1.Scope.SESSION, 'a', () => new A);
@@ -116,7 +116,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], ServerTest.prototype, "suiteSetup", null);
+], ServerTest.prototype, "setup", null);
 __decorate([
     jest_decorators_1.SuiteTeardown,
     __metadata("design:type", Function),

@@ -1,33 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class ServerResponse {
+class ServerResponseImpl {
     constructor() {
-        this._status = 200;
-        this._headers = Object.create(null);
-        this._body = null;
+        this.status = 200;
+        this.body = null;
+        this.headers = Object.create(null);
     }
-    get status() {
-        return this._status;
+    setHeader(key, value) {
+        this.headers[key] = value;
     }
-    set status(status) {
-        this._status = status;
+    getHeader(key) {
+        return this.headers[key];
     }
-    setHeader(name, value) {
-        this._headers[name] = value;
+    hasHeader(key) {
+        return Reflect.has(this.headers, key);
     }
-    getHeader(name) {
-        return this._headers[name];
+    removeHeader(key) {
+        return Reflect.deleteProperty(this.headers, key);
     }
-    get headers() {
-        return this._headers;
+    *keysOfHeaders() {
+        for (let key in this.headers) {
+            yield key;
+        }
     }
-    get body() {
-        return this._body;
+    *valuesOfHeaders() {
+        for (let key in this.headers) {
+            yield Reflect.get(this.headers, key);
+        }
     }
-    set body(body) {
-        this._body = body;
+    *entriesOfHeaders() {
+        for (let key in this.headers) {
+            yield [key, Reflect.get(this.headers, key)];
+        }
+    }
+    getHeaders() {
+        return this.headers;
     }
 }
-exports.ServerResponse = ServerResponse;
+exports.ServerResponseImpl = ServerResponseImpl;
 
 //# sourceMappingURL=response.js.map

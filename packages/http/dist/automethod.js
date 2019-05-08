@@ -3,12 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ParameterPoint;
 (function (ParameterPoint) {
     ParameterPoint[ParameterPoint["REQUEST"] = 0] = "REQUEST";
-    ParameterPoint[ParameterPoint["RESPONSE"] = 1] = "RESPONSE";
-    ParameterPoint[ParameterPoint["REQUEST_URI"] = 2] = "REQUEST_URI";
-    ParameterPoint[ParameterPoint["REQUEST_QUERY"] = 3] = "REQUEST_QUERY";
-    ParameterPoint[ParameterPoint["REQUEST_HEADERS"] = 4] = "REQUEST_HEADERS";
-    ParameterPoint[ParameterPoint["REQUEST_PARAMS"] = 5] = "REQUEST_PARAMS";
-    ParameterPoint[ParameterPoint["REQUEST_BODY"] = 6] = "REQUEST_BODY";
+    ParameterPoint[ParameterPoint["REQUEST_URL"] = 1] = "REQUEST_URL";
+    ParameterPoint[ParameterPoint["REQUEST_QUERY"] = 2] = "REQUEST_QUERY";
+    ParameterPoint[ParameterPoint["REQUEST_HEADERS"] = 3] = "REQUEST_HEADERS";
+    ParameterPoint[ParameterPoint["REQUEST_PARAMS"] = 4] = "REQUEST_PARAMS";
+    ParameterPoint[ParameterPoint["REQUEST_BODY"] = 5] = "REQUEST_BODY";
+    ParameterPoint[ParameterPoint["RESPONSE"] = 6] = "RESPONSE";
     ParameterPoint[ParameterPoint["ERROR"] = 7] = "ERROR";
 })(ParameterPoint = exports.ParameterPoint || (exports.ParameterPoint = {}));
 class AutoMethodProperties {

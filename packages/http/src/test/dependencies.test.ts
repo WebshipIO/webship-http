@@ -4,7 +4,7 @@ import {Suite, Test, SuiteSetup, SuiteTeardown, Setup, Teardown, TestContainer} 
 import {ApplicationScope, SessionScope, RequestScope, Scope, ProviderContainer} from '@webnode/cdi'
 import {HttpServer, ServerRequest, ServerResponse, RePathnameParams} from '..'
 import {Controller, Get, Post, Put, Delete, Head, Options, Trace, Connect} from '..'
-import {ParameterMapping, Req, Res, Uri, Headers, Params, Query, ReqBody} from '..'
+import {ParameterMapping, Req, Res, Url, Headers, Params, Query, ReqBody} from '..'
 import {RequestLifecycle, RequestStart, RequestEnd, RequestError} from '..'
 
 class A {
@@ -50,7 +50,7 @@ class ServerTest {
   private agent: Agent
 
   @SuiteSetup
-  private async suiteSetup() {
+  private async setup() {
     ProviderContainer.instance.set(Scope.APPLICATION, 'a', () => new A)
     ProviderContainer.instance.set(Scope.SESSION,     'a', () => new A)
     ProviderContainer.instance.set(Scope.REQUEST,     'a', () => new A)

@@ -1,4 +1,4 @@
-import {OutgoingHttpHeaders} from 'http'
+import {OutgoingHttpHeaders, ServerResponse as NativeServerResponse} from 'http'
 import {Readable} from 'stream'
 
 export type HttpStatus = 100 | 101 | 102 | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226 | 
@@ -7,36 +7,59 @@ export type HttpStatus = 100 | 101 | 102 | 200 | 201 | 202 | 203 | 204 | 205 | 2
                          417 | 418 | 421 | 422 | 423 | 424 | 425 | 426 | 428 | 429 | 431 | 451 | 
                          500 | 501 | 502 | 503 | 504 | 505 | 506 | 507 | 508 | 509 | 510 | 511
 
-export class ServerResponse {
-  private _status: HttpStatus = 200
-  private _headers: OutgoingHttpHeaders = Object.create(null)
-  private _body: Object | string | Readable = null
+export interface ServerResponse {
+  status: HttpStatus
+  body: Object | string | Readable
+  setHeader(key: string, value: number | string | string[]): void
+  getHeader(key: string): number | string | string[] | undefined
+  hasHeader(key: string): boolean
+  removeHeader(key: string): void
+  keysOfHeaders(): Iterable<string>
+  valuesOfHeaders(): Iterable<number | string | string[]>
+  entriesOfHeaders(): Iterable<[string, number | string | string[]]>
+  getHeaders(): OutgoingHttpHeaders
+}
 
-  public get status(): HttpStatus {
-    return this._status
+export class ServerResponseImpl implements ServerResponse {
+  public  status: HttpStatus = 200
+  public  body: Object | string | Readable = null
+  private headers: OutgoingHttpHeaders = Object.create(null)
+
+  public setHeader(key: string, value: number | string | string[]) {
+    this.headers[key] = value
   }
 
-  public set status(status: HttpStatus) {
-    this._status = status
+  public getHeader(key: string): number | string | string[] | undefined {
+    return this.headers[key]
   }
 
-  public setHeader(name: string, value: number | string | string[]) {
-    this._headers[name] = value
+  public hasHeader(key: string): boolean {
+    return Reflect.has(this.headers, key)
   }
 
-  public getHeader(name: string): number | string | string[] | undefined {
-    return this._headers[name]
+  public removeHeader(key: string) {
+    return Reflect.deleteProperty(this.headers, key)
   }
 
-  public get headers(): OutgoingHttpHeaders {
-    return this._headers
+  public * keysOfHeaders(): Iterable<string> {
+    for (let key in this.headers) {
+      yield key
+    }
   }
 
-  public get body(): Object | string | Readable {
-    return this._body
+  public * valuesOfHeaders(): Iterable<number | string | string[]> {
+    for (let key in this.headers) {
+      yield Reflect.get(this.headers, key)
+    }
   }
 
-  public set body(body: Object | string | Readable) {
-    this._body = body
+  public * entriesOfHeaders(): Iterable<[string, number | string | string[]]> {
+    for (let key in this.headers) {
+      yield [key, Reflect.get(this.headers, key)]
+    }
+  }
+
+  public getHeaders(): OutgoingHttpHeaders {
+    return this.headers
   }
 }
