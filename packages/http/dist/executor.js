@@ -43,6 +43,10 @@ class RequestExecutor {
         request.url = url_1.parse(decodeURIComponent(nativeRequest.url), true);
         request.method = (request.url.query.__method ? request.url.query.__method : nativeRequest.method).toUpperCase();
         request.headers = nativeRequest.headers;
+        request.remoteAddress = this.nativeRequest.connection.remoteAddress;
+        request.remotePort = this.nativeRequest.connection.remotePort;
+        request.localAddress = this.nativeRequest.connection.localAddress;
+        request.localPort = this.nativeRequest.connection.localPort;
         [this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname);
         this.sessionContext = this.nativeRequest.connection.__webnode_http_session__;
         this.applicationContext = this.sessionContext.getParent();

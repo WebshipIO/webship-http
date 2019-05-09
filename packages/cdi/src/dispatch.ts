@@ -133,7 +133,7 @@ export class NodeDispatcher {
     request.value.providerContainer = new Map()
     request.value.nodeContainer = new NodeInstanceContainer()
     let providerInstanceContainer = request.value.providerContainer
-    for (let [key, provider] of this.providerContainer.entries(Scope.SESSION)) {
+    for (let [key, provider] of this.providerContainer.entries(Scope.REQUEST)) {
       let instance = provider(request)
       providerInstanceContainer.set(key, instance)
       if (typeof (instance as any).onCreate === 'function') {
