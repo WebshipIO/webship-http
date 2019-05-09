@@ -42,6 +42,10 @@ declare namespace WebNode {
   }  
 
   export interface ServerRequest {
+    readonly remoteAddress: string
+    readonly remotePort: number
+    readonly localAddress: string
+    readonly localPort: number
     readonly httpVersion: string
     readonly httpVersionMajor: number
     readonly httpVersionMinor: number

@@ -47,8 +47,12 @@ export class RequestExecutor {
     request.httpVersionMinor = nativeRequest.httpVersionMinor
     request.url = parseUrl(decodeURIComponent(nativeRequest.url), true)
     request.method = (request.url.query.__method ? request.url.query.__method : nativeRequest.method).toUpperCase()
-    request.headers = nativeRequest.headers;
-    [this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname)
+    request.headers = nativeRequest.headers
+    request.remoteAddress = this.nativeRequest.connection.remoteAddress
+    request.remotePort = this.nativeRequest.connection.remotePort
+    request.localAddress = this.nativeRequest.connection.localAddress
+    request.localPort = this.nativeRequest.connection.localPort
+    ;[this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname)
     this.sessionContext = (this.nativeRequest.connection as any).__webnode_http_session__
     this.applicationContext = this.sessionContext.getParent()
   }
