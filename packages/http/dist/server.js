@@ -43,7 +43,7 @@ class HttpServer {
                 this.server.timeout = this.config.timeout;
             }
             this.server.on('connection', (connection) => this.prepareSessionContext(connection));
-            this.server.on('request', (req, res) => new executor_1.RequestExecutor(req, res, this.nodeDispatcher, this.context, registry_1.Registry.instance, this.config).exec());
+            this.server.on('request', (req, res) => new executor_1.RequestExecutor(req, res, this.nodeDispatcher, registry_1.Registry.instance, this.config).exec());
             yield this.prepareApplicationContext();
             yield new Promise((complete, fail) => this.server.listen(port, hostname, complete));
             this.closed = false;

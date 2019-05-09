@@ -26,7 +26,8 @@ function hasFormData(headerKey: string): boolean {
 }
 
 export class RequestExecutor {
-  private requestContext: RequestContext
+  private applicationContext: ApplicationContext
+  private sessionContext: SessionContext
   private request: ServerRequest = Object.create(null)
   private response: ServerResponse = new ServerResponseImpl()
   private route: Route
@@ -37,7 +38,6 @@ export class RequestExecutor {
     private nativeRequest: NativeServerRequest,
     private nativeResponse: NativeServerResponse,
     private nodeDispatcher: NodeDispatcher,
-    private applicationContext: ApplicationContext,
     private registry: Registry,
     private config: FormConfig
   ) {
@@ -47,10 +47,10 @@ export class RequestExecutor {
     request.httpVersionMinor = nativeRequest.httpVersionMinor
     request.url = parseUrl(decodeURIComponent(nativeRequest.url), true)
     request.method = (request.url.query.__method ? request.url.query.__method : nativeRequest.method).toUpperCase()
-    request.headers = nativeRequest.headers
-    request.applicationContext = applicationContext
-    request.sessionContext = (nativeRequest.connection as any).__webnode_http_session__;
+    request.headers = nativeRequest.headers;
     [this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname)
+    this.sessionContext = (this.nativeRequest.connection as any).__webnode_http_session__
+    this.applicationContext = this.sessionContext.getParent()
   }
 
   private async parseCharSequence() {
@@ -103,19 +103,19 @@ export class RequestExecutor {
   }
 
   private async prepareContext() {
-    (this.request as any).requestContext = await this.nodeDispatcher.createRequestContext(this.request.sessionContext)
+    (this.request as any).context = await this.nodeDispatcher.createRequestContext(this.sessionContext)
 
     this.nativeResponse.on('finish', async () => {
       this.ended = true
       for (let autoMethod of this.registry.valuesOfEventAutoMethods(Event.REQUEST_END)) {
         let properties = this.registry.getAutoMethodProperties(autoMethod)
         let node = properties.getNode()
-        let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext)
-        let instance = this.request.applicationContext.value.nodeContainer.get(node)
+        let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context)
+        let instance = this.applicationContext.value.nodeContainer.get(node)
         this.composeArgs(properties, args)
         await Reflect.apply(autoMethod, instance, args) 
       }
-      await this.nodeDispatcher.destroyRequestContext(this.request.requestContext)
+      await this.nodeDispatcher.destroyRequestContext(this.request.context)
     })
 
     this.nativeResponse.on('error', (error) => this.error = error)
@@ -126,20 +126,20 @@ export class RequestExecutor {
         for (let autoMethod of this.registry.valuesOfEventAutoMethods(Event.REQUEST_ERROR)) {
           let properties = this.registry.getAutoMethodProperties(autoMethod)
           let node = properties.getNode()
-          let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext)
-          let instance = this.request.applicationContext.value.nodeContainer.get(node)
+          let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context)
+          let instance = this.applicationContext.value.nodeContainer.get(node)
           this.composeArgs(properties, args)
           await Reflect.apply(autoMethod, instance, args) 
         }
-        await this.nodeDispatcher.destroyRequestContext(this.request.requestContext)
+        await this.nodeDispatcher.destroyRequestContext(this.request.context)
       }
     })
 
     for (let autoMethod of this.registry.valuesOfEventAutoMethods(Event.REQUEST_START)) {
       let properties = this.registry.getAutoMethodProperties(autoMethod)
       let node = properties.getNode()
-      let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext)
-      let instance = this.request.applicationContext.value.nodeContainer.get(node)
+      let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context)
+      let instance = this.applicationContext.value.nodeContainer.get(node)
       this.composeArgs(properties, args)
       await Reflect.apply(autoMethod, instance, args) 
     }
@@ -149,8 +149,8 @@ export class RequestExecutor {
     for (let autoMethod of this.route.valuesOfAutoMethods()) {
       let properties = this.registry.getAutoMethodProperties(autoMethod)
       let node = properties.getNode()
-      let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext)
-      let instance =  this.request.sessionContext.value.nodeContainer.get(node)
+      let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context)
+      let instance = this.sessionContext.value.nodeContainer.get(node)
       if (this.registry.hasAutoMethodPayload(autoMethod)) {
         this.response.status = this.registry.getAutoMethodPayload(autoMethod).getResponseStatus()  
       }

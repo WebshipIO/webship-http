@@ -18,8 +18,6 @@ export interface ServerRequest {
   readonly params: RePathnameParams
   readonly headers: IncomingHttpHeaders
   readonly body: Object | string
-  readonly applicationContext: ApplicationContext
-  readonly sessionContext: SessionContext
-  readonly requestContext: RequestContext
+  readonly context: RequestContext
 }
 

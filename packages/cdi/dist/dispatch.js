@@ -94,7 +94,7 @@ class NodeDispatcher {
             session.value.nodeContainer = new node_1.NodeInstanceContainer();
             let providerInstanceContainer = session.value.providerContainer;
             for (let [key, provider] of this.providerContainer.entries(scope_1.Scope.SESSION)) {
-                let instance = provider(this.context, session);
+                let instance = provider(session);
                 providerInstanceContainer.set(key, instance);
                 if (typeof instance.onCreate === 'function') {
                     yield instance.onCreate();
@@ -139,7 +139,7 @@ class NodeDispatcher {
             request.value.nodeContainer = new node_1.NodeInstanceContainer();
             let providerInstanceContainer = request.value.providerContainer;
             for (let [key, provider] of this.providerContainer.entries(scope_1.Scope.SESSION)) {
-                let instance = provider(this.context, session, request);
+                let instance = provider(request);
                 providerInstanceContainer.set(key, instance);
                 if (typeof instance.onCreate === 'function') {
                     yield instance.onCreate();

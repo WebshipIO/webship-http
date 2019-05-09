@@ -27,11 +27,10 @@ function hasFormData(headerKey) {
         hasContent(headerKey, "application/x-www-form-urlencoded");
 }
 class RequestExecutor {
-    constructor(nativeRequest, nativeResponse, nodeDispatcher, applicationContext, registry, config) {
+    constructor(nativeRequest, nativeResponse, nodeDispatcher, registry, config) {
         this.nativeRequest = nativeRequest;
         this.nativeResponse = nativeResponse;
         this.nodeDispatcher = nodeDispatcher;
-        this.applicationContext = applicationContext;
         this.registry = registry;
         this.config = config;
         this.request = Object.create(null);
@@ -44,9 +43,9 @@ class RequestExecutor {
         request.url = url_1.parse(decodeURIComponent(nativeRequest.url), true);
         request.method = (request.url.query.__method ? request.url.query.__method : nativeRequest.method).toUpperCase();
         request.headers = nativeRequest.headers;
-        request.applicationContext = applicationContext;
-        request.sessionContext = nativeRequest.connection.__webnode_http_session__;
         [this.route, request.params] = this.registry.getRoute(request.method, request.url.pathname);
+        this.sessionContext = this.nativeRequest.connection.__webnode_http_session__;
+        this.applicationContext = this.sessionContext.getParent();
     }
     parseCharSequence() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -102,18 +101,18 @@ class RequestExecutor {
     }
     prepareContext() {
         return __awaiter(this, void 0, void 0, function* () {
-            this.request.requestContext = yield this.nodeDispatcher.createRequestContext(this.request.sessionContext);
+            this.request.context = yield this.nodeDispatcher.createRequestContext(this.sessionContext);
             this.nativeResponse.on('finish', () => __awaiter(this, void 0, void 0, function* () {
                 this.ended = true;
                 for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_END)) {
                     let properties = this.registry.getAutoMethodProperties(autoMethod);
                     let node = properties.getNode();
-                    let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
-                    let instance = this.request.applicationContext.value.nodeContainer.get(node);
+                    let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context);
+                    let instance = this.applicationContext.value.nodeContainer.get(node);
                     this.composeArgs(properties, args);
                     yield Reflect.apply(autoMethod, instance, args);
                 }
-                yield this.nodeDispatcher.destroyRequestContext(this.request.requestContext);
+                yield this.nodeDispatcher.destroyRequestContext(this.request.context);
             }));
             this.nativeResponse.on('error', (error) => this.error = error);
             this.nativeRequest.on('error', (error) => this.error = error);
@@ -123,19 +122,19 @@ class RequestExecutor {
                     for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_ERROR)) {
                         let properties = this.registry.getAutoMethodProperties(autoMethod);
                         let node = properties.getNode();
-                        let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
-                        let instance = this.request.applicationContext.value.nodeContainer.get(node);
+                        let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context);
+                        let instance = this.applicationContext.value.nodeContainer.get(node);
                         this.composeArgs(properties, args);
                         yield Reflect.apply(autoMethod, instance, args);
                     }
-                    yield this.nodeDispatcher.destroyRequestContext(this.request.requestContext);
+                    yield this.nodeDispatcher.destroyRequestContext(this.request.context);
                 }
             }));
             for (let autoMethod of this.registry.valuesOfEventAutoMethods(event_1.Event.REQUEST_START)) {
                 let properties = this.registry.getAutoMethodProperties(autoMethod);
                 let node = properties.getNode();
-                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
-                let instance = this.request.applicationContext.value.nodeContainer.get(node);
+                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context);
+                let instance = this.applicationContext.value.nodeContainer.get(node);
                 this.composeArgs(properties, args);
                 yield Reflect.apply(autoMethod, instance, args);
             }
@@ -146,8 +145,8 @@ class RequestExecutor {
             for (let autoMethod of this.route.valuesOfAutoMethods()) {
                 let properties = this.registry.getAutoMethodProperties(autoMethod);
                 let node = properties.getNode();
-                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.requestContext);
-                let instance = this.request.sessionContext.value.nodeContainer.get(node);
+                let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context);
+                let instance = this.sessionContext.value.nodeContainer.get(node);
                 if (this.registry.hasAutoMethodPayload(autoMethod)) {
                     this.response.status = this.registry.getAutoMethodPayload(autoMethod).getResponseStatus();
                 }

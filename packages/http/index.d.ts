@@ -50,9 +50,7 @@ declare namespace WebNode {
     readonly params: RePathnameParams
     readonly headers: Http.IncomingHttpHeaders
     readonly body: Object | string
-    readonly applicationContext: Cdi.ApplicationContext
-    readonly sessionContext: Cdi.SessionContext
-    readonly requestContext: Cdi.RequestContext
+    readonly context: Cdi.RequestContext
   }
 
   export type HttpStatus = 100 | 101 | 102 | 200 | 201 | 202 | 203 | 204 | 205 | 206 | 207 | 208 | 226 | 

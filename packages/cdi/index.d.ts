@@ -6,7 +6,7 @@ declare namespace WebNode {
     APPLICATION, SESSION, REQUEST
   }
 
-  export type Provider = (application: ApplicationContext, session?: SessionContext, request?: RequestContext) => ProviderInstance | Promise<ProviderInstance>
+  export type Provider = (context: Context) => ProviderInstance | Promise<ProviderInstance>
   export type ProviderInstance = NonNullable<Object>
   export type ProviderKey = PropertyKey
   export type ProviderMap = Map<ProviderKey, Provider>

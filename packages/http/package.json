@@ -1,6 +1,6 @@
 {
   "name": "@webnode/http",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Efficient and agile web framework for building web applications",
   "main": "dist",
   "engines": {
@@ -41,7 +41,7 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@webnode/cdi": "^1.1.2",
+    "@webnode/cdi": "^1.2.1",
     "formidable": "^1.2.1",
     "path-to-regexp": "^3.0.0"
   }
