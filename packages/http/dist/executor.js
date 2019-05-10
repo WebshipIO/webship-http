@@ -163,7 +163,7 @@ class RequestExecutor {
         });
     }
     send() {
-        this.nativeResponse.writeHead(this.response.status, this.response.getHeaders());
+        this.nativeResponse.writeHead(this.response.status, this.response.headers);
         if (this.response.body === undefined || this.response.body === null) {
             this.nativeResponse.end();
         }
@@ -188,22 +188,22 @@ class RequestExecutor {
     exec() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.prepareContext();
-            try {
-                if (this.route === null) {
-                    this.execHttpError(error_1.HttpError.create(error_1.HttpErrorCode.NOT_FOUND));
-                }
-                else {
+            if (this.route === null) {
+                this.execHttpError(error_1.HttpError.create(error_1.HttpErrorCode.NOT_FOUND));
+            }
+            else {
+                try {
                     yield this.parseReqBody();
                     yield this.execRoute();
-                    this.send();
+                }
+                catch (err) {
+                    if (!(err instanceof error_1.HttpError)) {
+                        err = error_1.HttpError.create(error_1.HttpErrorCode.INTERNAL_SERVER_ERROR, err.message, err.stack);
+                    }
+                    this.execHttpError(err);
                 }
             }
-            catch (err) {
-                if (!(err instanceof error_1.HttpError)) {
-                    err = error_1.HttpError.create(error_1.HttpErrorCode.INTERNAL_SERVER_ERROR, err.message, err.stack);
-                }
-                this.execHttpError(err);
-            }
+            this.send();
         });
     }
     composeArgs(properties, args) {
@@ -238,12 +238,15 @@ class RequestExecutor {
     }
     execHttpError(error) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.error = error;
-            this.nativeResponse.writeHead(error.statusCode);
-            this.nativeResponse.end(JSON.stringify({
+            ;
+            this.response.status = error.statusCode;
+            this.response.headers = {
+                'Content-Type': 'application/json; charset=utf8'
+            };
+            this.response.body = {
                 message: error.message,
                 stack: error.stack
-            }));
+            };
         });
     }
     createIncomingForm() {

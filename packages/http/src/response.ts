@@ -10,6 +10,7 @@ export type HttpStatus = 100 | 101 | 102 | 200 | 201 | 202 | 203 | 204 | 205 | 2
 export interface ServerResponse {
   status: HttpStatus
   body: Object | string | Readable
+  headers: OutgoingHttpHeaders
   setHeader(key: string, value: number | string | string[]): void
   getHeader(key: string): number | string | string[] | undefined
   hasHeader(key: string): boolean
@@ -17,49 +18,52 @@ export interface ServerResponse {
   keysOfHeaders(): Iterable<string>
   valuesOfHeaders(): Iterable<number | string | string[]>
   entriesOfHeaders(): Iterable<[string, number | string | string[]]>
-  getHeaders(): OutgoingHttpHeaders
 }
 
 export class ServerResponseImpl implements ServerResponse {
   public  status: HttpStatus = 200
   public  body: Object | string | Readable = null
-  private headers: OutgoingHttpHeaders = Object.create(null)
+  private _headers: OutgoingHttpHeaders = Object.create(null)
 
   public setHeader(key: string, value: number | string | string[]) {
-    this.headers[key] = value
+    this._headers[key] = value
   }
 
   public getHeader(key: string): number | string | string[] | undefined {
-    return this.headers[key]
+    return this._headers[key]
   }
 
   public hasHeader(key: string): boolean {
-    return Reflect.has(this.headers, key)
+    return Reflect.has(this._headers, key)
   }
 
   public removeHeader(key: string) {
-    return Reflect.deleteProperty(this.headers, key)
+    Reflect.deleteProperty(this._headers, key)
   }
 
   public * keysOfHeaders(): Iterable<string> {
-    for (let key in this.headers) {
+    for (let key in this._headers) {
       yield key
     }
   }
 
   public * valuesOfHeaders(): Iterable<number | string | string[]> {
-    for (let key in this.headers) {
-      yield Reflect.get(this.headers, key)
+    for (let key in this._headers) {
+      yield Reflect.get(this._headers, key)
     }
   }
 
   public * entriesOfHeaders(): Iterable<[string, number | string | string[]]> {
-    for (let key in this.headers) {
-      yield [key, Reflect.get(this.headers, key)]
+    for (let key in this._headers) {
+      yield [key, Reflect.get(this._headers, key)]
     }
   }
 
-  public getHeaders(): OutgoingHttpHeaders {
-    return this.headers
+  public get headers(): OutgoingHttpHeaders {
+    return this._headers
+  }
+
+  public set headers(_headers: OutgoingHttpHeaders)  {
+    this._headers = _headers
   }
 }

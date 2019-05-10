@@ -167,7 +167,7 @@ export class RequestExecutor {
   }
 
   private send() {
-    this.nativeResponse.writeHead(this.response.status, this.response.getHeaders())
+    this.nativeResponse.writeHead(this.response.status, this.response.headers)
     if (this.response.body === undefined || this.response.body === null) {
       this.nativeResponse.end()
     } else if (typeof this.response.body === 'object') {
@@ -187,20 +187,20 @@ export class RequestExecutor {
 
   public async exec() {
     await this.prepareContext()
-    try {
-      if (this.route === null) {
-        this.execHttpError(HttpError.create(HttpErrorCode.NOT_FOUND))
-      } else {
+    if (this.route === null) {
+      this.execHttpError(HttpError.create(HttpErrorCode.NOT_FOUND))
+    } else {
+      try {
         await this.parseReqBody()
         await this.execRoute()
-        this.send()
+      } catch (err) {
+        if (!(err instanceof HttpError)) {
+          err = HttpError.create(HttpErrorCode.INTERNAL_SERVER_ERROR, err.message, err.stack)
+        }
+        this.execHttpError(err)
       }
-    } catch (err) {
-      if (!(err instanceof HttpError)) {
-        err = HttpError.create(HttpErrorCode.INTERNAL_SERVER_ERROR, err.message, err.stack)
-      }
-      this.execHttpError(err)
     }
+    this.send()
   }
 
   private composeArgs(properties: AutoMethodProperties, args: Array<any>) {
@@ -235,12 +235,14 @@ export class RequestExecutor {
   }
 
   private async execHttpError(error: HttpError) {
-    this.error = error
-    this.nativeResponse.writeHead(error.statusCode)
-    this.nativeResponse.end(JSON.stringify({
+    ;(this.response as any).status = error.statusCode
+    ;(this.response as any).headers = {
+      'Content-Type': 'application/json; charset=utf8'
+    }
+    ;(this.response as any).body = {
       message: error.message,
       stack: error.stack
-    }))
+    }
   }
 
   private createIncomingForm(): IncomingForm {

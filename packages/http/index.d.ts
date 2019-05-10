@@ -66,6 +66,7 @@ declare namespace WebNode {
   export interface ServerResponse {
     status: HttpStatus
     body: Object | string | Stream.Readable
+    headers: Http.OutgoingHttpHeaders
     setHeader(key: string, value: number | string | string[]): void
     getHeader(key: string): number | string | string[] | undefined
     hasHeader(key: string): boolean
@@ -73,7 +74,6 @@ declare namespace WebNode {
     keysOfHeaders(): Iterable<string>
     valuesOfHeaders(): Iterable<number | string | string[]>
     entriesOfHeaders(): Iterable<[string, number | string | string[]]>
-    getHeaders(): Http.OutgoingHttpHeaders
   }
 
   export interface FormConfig {

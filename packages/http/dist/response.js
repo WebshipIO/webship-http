@@ -4,37 +4,40 @@ class ServerResponseImpl {
     constructor() {
         this.status = 200;
         this.body = null;
-        this.headers = Object.create(null);
+        this._headers = Object.create(null);
     }
     setHeader(key, value) {
-        this.headers[key] = value;
+        this._headers[key] = value;
     }
     getHeader(key) {
-        return this.headers[key];
+        return this._headers[key];
     }
     hasHeader(key) {
-        return Reflect.has(this.headers, key);
+        return Reflect.has(this._headers, key);
     }
     removeHeader(key) {
-        return Reflect.deleteProperty(this.headers, key);
+        Reflect.deleteProperty(this._headers, key);
     }
     *keysOfHeaders() {
-        for (let key in this.headers) {
+        for (let key in this._headers) {
             yield key;
         }
     }
     *valuesOfHeaders() {
-        for (let key in this.headers) {
-            yield Reflect.get(this.headers, key);
+        for (let key in this._headers) {
+            yield Reflect.get(this._headers, key);
         }
     }
     *entriesOfHeaders() {
-        for (let key in this.headers) {
-            yield [key, Reflect.get(this.headers, key)];
+        for (let key in this._headers) {
+            yield [key, Reflect.get(this._headers, key)];
         }
     }
-    getHeaders() {
-        return this.headers;
+    get headers() {
+        return this._headers;
+    }
+    set headers(_headers) {
+        this._headers = _headers;
     }
 }
 exports.ServerResponseImpl = ServerResponseImpl;
