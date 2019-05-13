@@ -14,7 +14,7 @@ export enum ParameterPoint {
 }
 
 export type AutoMethod = (...args: Array<any>) => void | Promise<void>
-export type Middleware = (req: ServerRequest, res: ServerResponse) => void | Promise<void>
+export type Middleware = (req: ServerRequest, res: ServerResponse) => boolean | Promise<boolean>
 
 export class AutoMethodProperties {
   private parameters: Map<number, ParameterPoint>

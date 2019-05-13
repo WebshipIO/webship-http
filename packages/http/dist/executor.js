@@ -146,7 +146,7 @@ class RequestExecutor {
     }
     execRoute() {
         return __awaiter(this, void 0, void 0, function* () {
-            for (let autoMethod of this.route.valuesOfAutoMethods()) {
+            loop: for (let autoMethod of this.route.valuesOfAutoMethods()) {
                 let properties = this.registry.getAutoMethodProperties(autoMethod);
                 let node = properties.getNode();
                 let args = this.nodeDispatcher.genArgumentsOfRequestContext(node, autoMethod.name, this.request.context);
@@ -155,8 +155,12 @@ class RequestExecutor {
                     this.response.status = this.registry.getAutoMethodPayload(autoMethod).getResponseStatus();
                 }
                 this.composeArgs(properties, args);
+                let middlewareStatus = true;
                 for (let middleware of properties.valuesOfMiddlewares()) {
-                    yield Reflect.apply(middleware, instance, [this.request, this.response]);
+                    middlewareStatus = yield Reflect.apply(middleware, instance, [this.request, this.response]);
+                    if (!middlewareStatus) {
+                        continue loop;
+                    }
                 }
                 yield Reflect.apply(autoMethod, instance, args);
             }

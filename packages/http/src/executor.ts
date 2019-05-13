@@ -150,6 +150,7 @@ export class RequestExecutor {
   }
 
   private async execRoute() {
+    loop: 
     for (let autoMethod of this.route.valuesOfAutoMethods()) {
       let properties = this.registry.getAutoMethodProperties(autoMethod)
       let node = properties.getNode()
@@ -159,8 +160,12 @@ export class RequestExecutor {
         this.response.status = this.registry.getAutoMethodPayload(autoMethod).getResponseStatus()  
       }
       this.composeArgs(properties, args)
+      let middlewareStatus = true
       for (let middleware of properties.valuesOfMiddlewares()) {
-        await Reflect.apply(middleware, instance, [this.request, this.response]) 
+        middlewareStatus = await Reflect.apply(middleware, instance, [this.request, this.response]) 
+        if (!middlewareStatus) {
+          continue loop
+        }
       }
       await Reflect.apply(autoMethod, instance, args) 
     }

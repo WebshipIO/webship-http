@@ -102,7 +102,7 @@ declare namespace WebNode {
   }
 
   export type AutoMethod = (...args: Array<any>) => void | Promise<void>
-  export type Middleware = (req: ServerRequest, res: ServerResponse) => void | Promise<void>
+  export type Middleware = (req: ServerRequest, res: ServerResponse) => boolean | Promise<boolean>
 
   export enum ParameterPoint {
     REQUEST, 
