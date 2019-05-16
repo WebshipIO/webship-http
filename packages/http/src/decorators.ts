@@ -8,12 +8,12 @@ import {HttpStatus} from './response'
 
 export type PropertyKey = string | symbol
 
-export function Controller(node: Node): Node {
+export function Controller<T extends Node>(node: T): T {
   Registry.instance.registerRouteNode(node)
   return node
 }
 
-export function RequestLifecycle(node: Node): Node {
+export function RequestLifecycle<T extends Node>(node: T): T {
   Registry.instance.registerEventNode(node)
   return node
 }

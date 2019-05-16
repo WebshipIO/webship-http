@@ -115,9 +115,9 @@ declare namespace WebNode {
     ERROR
   }
 
-  export function Controller(node: Cdi.Node): Cdi.Node 
+  export function Controller<T extends Cdi.Node>(node: T): T 
 
-  export function RequestLifecycle(node: Cdi.Node): Cdi.Node 
+  export function RequestLifecycle<T extends Cdi.Node>(node: T): T 
 
   export function RequestMapping(method: HttpMethod, rePathname: RePathname): MethodDecorator
 

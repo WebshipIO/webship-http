@@ -1,6 +1,6 @@
 {
   "name": "@webnode/http",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Efficient and agile web framework for building web applications",
   "main": "dist",
   "engines": {
@@ -33,7 +33,7 @@
     "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^5.0.1",
     "jest": "^24.5.0",
-    "jest-decorators": "^0.1.2",
+    "jest-decorators": "^0.1.6",
     "request-promise": "^4.2.4",
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.1",
