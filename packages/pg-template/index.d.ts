@@ -9,7 +9,7 @@ declare namespace WebNode {
 
   export type RepositoryClass = new(...args: Array<any>) => Repository
 
-  export type QueryType = 'Query' | 'PureQuery' | 'MultipleQuery' | 'Transcation'
+  export type QueryType = 'Query' | 'PureQuery' | 'Transaction'
 
   export interface QueryProperties {
     type: QueryType
@@ -26,11 +26,8 @@ declare namespace WebNode {
 
   export function Query(sql: string): (target: Repository, propertyKey: PropertyKey) => void
   export function PureQuery(sql: string): (target: Repository, propertyKey: PropertyKey) => void
-  export function QueryFilter<T>(filter: (r: Pg.QueryResult) => T): (target: Repository, propertyKey: PropertyKey) => void
-  export function MultipleQuery(sql: string): (target: Repository, propertyKey: PropertyKey) => void
-  export function MultipleQueryFilter<T>(filter: (r: ReadonlyArray<Pg.QueryResult>) => T): (target: Repository, propertyKey: PropertyKey) => void
-  export function Transaction(sql: string): (target: Repository, propertyKey: PropertyKey) => void
-  export function TransactionFilter<T>(filter: (r: ReadonlyArray<Pg.QueryResult>) => T): (target: Repository, propertyKey: PropertyKey) => void
+  export function TransactionQuery(sql: string): (target: Repository, propertyKey: PropertyKey) => void
+  export function QueryFilter<T>(filter: (r: Pg.QueryResult | ReadonlyArray<Pg.QueryResult>) => T): (target: Repository, propertyKey: PropertyKey) => void
 }
 
 export = WebNode
