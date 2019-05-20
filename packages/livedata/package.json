@@ -1,14 +1,14 @@
 {
-  "name": "@webnode/pg-template",
-  "version": "1.1.2",
-  "description": "PG sql template",
+  "name": "@webnode/livedata",
+  "version": "1.0.0",
+  "description": "Observed within a given lifecycle",
   "main": "dist",
   "engines": {
     "node": ">=10.15.3"
   },
   "keywords": [
-    "sql",
-    "template"
+    "observer",
+    "livedata"
   ],
   "author": {
     "name": "Wang Tong",
@@ -24,23 +24,16 @@
     "build": "gulp build"
   },
   "devDependencies": {
-    "@types/pg": "^7.4.14",
-    "@types/pg-format": "^1.0.0",
     "@types/jest": "^24.0.11",
-    "@types/request-promise": "^4.1.42",
     "gulp": "^4.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^5.0.1",
     "jest": "^24.5.0",
     "jest-decorators": "^0.1.6",
-    "request-promise": "^4.2.4",
     "rimraf": "^2.6.3",
     "ts-jest": "^24.0.1",
     "ts-node": "^8.0.3",
     "typescript": "^3.4.5"
   },
-  "dependencies": {
-    "pg": "^7.10.0",
-    "pg-format": "^1.0.4"
-  }
+  "dependencies": {}
 }

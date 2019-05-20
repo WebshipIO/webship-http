@@ -1,28 +1,22 @@
 import * as PostgresFormat from 'pg-format'
-import {Pool, Connection, QueryResult} from 'pg'
+import {Pool, PoolClient, Connection, QueryResult} from 'pg'
 
-export abstract class Repository {
-  constructor(protected pool: Pool) {
-  }
+export interface Repository {
+  readonly pool: Pool
 }
 
 export type RepositoryClass = new(...args: Array<any>) => Repository
 
+export type QueryType = 'Query' | 'PureQuery' | 'MultipleQuery' | 'Transcation'
+
 export interface QueryProperties {
-  type: 'query'
-  sql?: string
-  filter?: (r: QueryResult) => any
-  fn?: (...args: Array<any>) => any
+  type: QueryType
+  sql: string
+  fn: (...args: Array<any>) => any
+  filter: (r: QueryResult | ReadonlyArray<QueryResult>) => any
 }
 
-export interface TransactionProperties {
-  type: 'transcation'
-  sql?: string
-  filter?: (r: ReadonlyArray<QueryResult>) => any
-  fn?: (...args: Array<any>) => any
-}
-
-export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties | TransactionProperties>> {
+export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties>> {
   private static sInstance: PgTemplateContainer
 
   public static get instance(): PgTemplateContainer {
@@ -35,20 +29,50 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
   public transform() {
     for (let [classType, map] of super.entries()) {
       for (let [key, value] of map.entries()) {
-        switch (value.type) {
-        case 'query':
-          if (typeof value.sql === 'string') {
+        if (typeof value.sql === 'string') {
+          switch (value.type) {
+          case 'Query':
             value.fn = Reflect.get(classType.prototype, key)
             Reflect.defineProperty(classType.prototype, key, {
               value: async function (...args: any[]) {
-                let result = await this.pool.query(PostgresFormat.withArray((value as QueryProperties).sql, args))
+                let result = await this.pool.query(PostgresFormat.withArray(value.sql, args))
                 return typeof value.filter === 'function' ? value.filter(result) : result
               }
             })
-          }
-          break
-        case 'transcation':
-          if (typeof value.sql === 'string') {
+            break
+          case 'PureQuery':
+            value.fn = Reflect.get(classType.prototype, key)
+            Reflect.defineProperty(classType.prototype, key, {
+              value: function (...args: any[]) {
+                return async function (c: PoolClient) {
+                  let result = await c.query(PostgresFormat.withArray(value.sql, args))
+                  return typeof value.filter === 'function' ? value.filter(result) : result
+                }
+              }
+            })
+            break
+          case 'MultipleQuery':
+            value.fn = Reflect.get(classType.prototype, key)
+            Reflect.defineProperty(classType.prototype, key, {
+              value: async function (...args: any[]) {
+                let connection = await this.pool.connect()
+                let result: Array<QueryResult> = []
+                let sqls = PostgresFormat.withArray(value.sql, args).split(';').filter(x => x.trim().length > 0)
+                try {
+                  for (let s of sqls) {
+                    let a = await connection.query(s)
+                    result.push(a)
+                  }
+                } catch (e) {
+                  throw e
+                } finally {
+                  connection.release()
+                }
+                return typeof value.filter === 'function' ? value.filter(result) : result
+              }
+            })
+            break
+          case 'Transcation':
             value.fn = Reflect.get(classType.prototype, key)
             Reflect.defineProperty(classType.prototype, key, {
               value: async function (...args: any[]) {
@@ -68,11 +92,11 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
                 } finally {
                   connection.release()
                 }
-                return typeof value.filter === 'function' ? (value as TransactionProperties).filter(result) : result
+                return typeof value.filter === 'function' ? value.filter(result) : result
               }
             })
+            break
           }
-          break
         }
       }
     }
@@ -81,21 +105,17 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
   public untransform() {
     for (let [classType, map] of super.entries()) {
       for (let [key, value] of map.entries()) {
-        switch (value.type) {
-        case 'query':
-          if (typeof value.sql === 'string') {
+        if (typeof value.sql === 'string') {
+          switch (value.type) {
+          case 'Query':
+          case 'PureQuery': 
+          case 'MultipleQuery':
+          case 'Transcation':
             Reflect.defineProperty(classType.prototype, key, {
               value: value.fn
             })
+            break
           }
-          break
-        case 'transcation':
-          if (typeof value.sql === 'string') {
-            Reflect.defineProperty(classType.prototype, key, {
-              value: value.fn
-            })
-          }
-          break
         }
       }
     }
@@ -110,8 +130,29 @@ export function Query(sql: string): PropertyDecorator {
     }
     if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
       PgTemplateContainer.instance.get(classType).set(propertyKey, {
-        type: 'query',
-        sql: sql
+        type: 'Query',
+        sql: sql,
+        fn: null,
+        filter: null
+      })
+    } else {
+      PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
+    }
+  }
+}
+
+export function PureQuery(sql: string): PropertyDecorator {
+  return function (target: Repository, propertyKey: PropertyKey) {
+    let classType = target.constructor as RepositoryClass
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
+    }
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
+        type: 'PureQuery',
+        sql: sql,
+        fn: null,
+        filter: null
       })
     } else {
       PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
@@ -120,14 +161,16 @@ export function Query(sql: string): PropertyDecorator {
 }
 
 export function QueryFilter<T>(filter: (r: QueryResult) => T): PropertyDecorator {
-  return function (target: Object, propertyKey: PropertyKey) {
+  return function (target: Repository, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
     if (!PgTemplateContainer.instance.has(classType)) {
       PgTemplateContainer.instance.set(classType, new Map())
     }
     if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
       PgTemplateContainer.instance.get(classType).set(propertyKey, {
-        type: 'query',
+        type: 'Query',
+        sql: null,
+        fn: null,
         filter: filter
       })
     } else {
@@ -136,16 +179,55 @@ export function QueryFilter<T>(filter: (r: QueryResult) => T): PropertyDecorator
   }
 }
 
-export function Transaction(sql: string): PropertyDecorator {
-  return function (target: Object, propertyKey: PropertyKey) {
+export function MultipleQuery(sql: string): PropertyDecorator {
+  return function (target: Repository, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
     if (!PgTemplateContainer.instance.has(classType)) {
       PgTemplateContainer.instance.set(classType, new Map())
     }
     if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
       PgTemplateContainer.instance.get(classType).set(propertyKey, {
-        type: 'transcation',
-        sql: sql
+        type: 'MultipleQuery',
+        sql: sql,
+        fn: null,
+        filter: null
+      })
+    } else {
+      PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
+    }
+  }
+}
+
+export function MultipleQueryFilter<T>(filter: (r: ReadonlyArray<QueryResult>) => T): PropertyDecorator {
+  return function (target: Repository, propertyKey: PropertyKey) {
+    let classType = target.constructor as RepositoryClass
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
+    }
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
+        type: 'MultipleQuery',
+        sql: null,
+        fn: null,
+        filter: filter
+      })
+    }
+    PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
+  }
+}
+
+export function Transaction(sql: string): PropertyDecorator {
+  return function (target: Repository, propertyKey: PropertyKey) {
+    let classType = target.constructor as RepositoryClass
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
+    }
+    if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+      PgTemplateContainer.instance.get(classType).set(propertyKey, {
+        type: 'Transcation',
+        sql: sql,
+        fn: null,
+        filter: null
       })
     } else {
       PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql
@@ -154,18 +236,20 @@ export function Transaction(sql: string): PropertyDecorator {
 }
 
 export function TransactionFilter<T>(filter: (r: ReadonlyArray<QueryResult>) => T): PropertyDecorator {
-  return function (target: Object, propertyKey: PropertyKey) {
+  return function (target: Repository, propertyKey: PropertyKey) {
     let classType = target.constructor as RepositoryClass
     if (!PgTemplateContainer.instance.has(classType)) {
       PgTemplateContainer.instance.set(classType, new Map())
     }
     if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
       PgTemplateContainer.instance.get(classType).set(propertyKey, {
-        type: 'transcation',
+        type: 'Transcation',
+        sql: null,
+        fn: null,
         filter: filter
       })
-    } else {
-      PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
     }
+    PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter
   }
 }
+

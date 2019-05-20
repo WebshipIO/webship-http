@@ -9,12 +9,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const PostgresFormat = require("pg-format");
-class Repository {
-    constructor(pool) {
-        this.pool = pool;
-    }
-}
-exports.Repository = Repository;
 class PgTemplateContainer extends Map {
     static get instance() {
         if (PgTemplateContainer.sInstance === undefined) {
@@ -25,9 +19,9 @@ class PgTemplateContainer extends Map {
     transform() {
         for (let [classType, map] of super.entries()) {
             for (let [key, value] of map.entries()) {
-                switch (value.type) {
-                    case 'query':
-                        if (typeof value.sql === 'string') {
+                if (typeof value.sql === 'string') {
+                    switch (value.type) {
+                        case 'Query':
                             value.fn = Reflect.get(classType.prototype, key);
                             Reflect.defineProperty(classType.prototype, key, {
                                 value: function (...args) {
@@ -37,10 +31,46 @@ class PgTemplateContainer extends Map {
                                     });
                                 }
                             });
-                        }
-                        break;
-                    case 'transcation':
-                        if (typeof value.sql === 'string') {
+                            break;
+                        case 'PureQuery':
+                            value.fn = Reflect.get(classType.prototype, key);
+                            Reflect.defineProperty(classType.prototype, key, {
+                                value: function (...args) {
+                                    return function (c) {
+                                        return __awaiter(this, void 0, void 0, function* () {
+                                            let result = yield c.query(PostgresFormat.withArray(value.sql, args));
+                                            return typeof value.filter === 'function' ? value.filter(result) : result;
+                                        });
+                                    };
+                                }
+                            });
+                            break;
+                        case 'MultipleQuery':
+                            value.fn = Reflect.get(classType.prototype, key);
+                            Reflect.defineProperty(classType.prototype, key, {
+                                value: function (...args) {
+                                    return __awaiter(this, void 0, void 0, function* () {
+                                        let connection = yield this.pool.connect();
+                                        let result = [];
+                                        let sqls = PostgresFormat.withArray(value.sql, args).split(';').filter(x => x.trim().length > 0);
+                                        try {
+                                            for (let s of sqls) {
+                                                let a = yield connection.query(s);
+                                                result.push(a);
+                                            }
+                                        }
+                                        catch (e) {
+                                            throw e;
+                                        }
+                                        finally {
+                                            connection.release();
+                                        }
+                                        return typeof value.filter === 'function' ? value.filter(result) : result;
+                                    });
+                                }
+                            });
+                            break;
+                        case 'Transcation':
                             value.fn = Reflect.get(classType.prototype, key);
                             Reflect.defineProperty(classType.prototype, key, {
                                 value: function (...args) {
@@ -67,8 +97,8 @@ class PgTemplateContainer extends Map {
                                     });
                                 }
                             });
-                        }
-                        break;
+                            break;
+                    }
                 }
             }
         }
@@ -76,21 +106,17 @@ class PgTemplateContainer extends Map {
     untransform() {
         for (let [classType, map] of super.entries()) {
             for (let [key, value] of map.entries()) {
-                switch (value.type) {
-                    case 'query':
-                        if (typeof value.sql === 'string') {
+                if (typeof value.sql === 'string') {
+                    switch (value.type) {
+                        case 'Query':
+                        case 'PureQuery':
+                        case 'MultipleQuery':
+                        case 'Transcation':
                             Reflect.defineProperty(classType.prototype, key, {
                                 value: value.fn
                             });
-                        }
-                        break;
-                    case 'transcation':
-                        if (typeof value.sql === 'string') {
-                            Reflect.defineProperty(classType.prototype, key, {
-                                value: value.fn
-                            });
-                        }
-                        break;
+                            break;
+                    }
                 }
             }
         }
@@ -105,8 +131,10 @@ function Query(sql) {
         }
         if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
             PgTemplateContainer.instance.get(classType).set(propertyKey, {
-                type: 'query',
-                sql: sql
+                type: 'Query',
+                sql: sql,
+                fn: null,
+                filter: null
             });
         }
         else {
@@ -115,6 +143,26 @@ function Query(sql) {
     };
 }
 exports.Query = Query;
+function PureQuery(sql) {
+    return function (target, propertyKey) {
+        let classType = target.constructor;
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
+        }
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
+                type: 'PureQuery',
+                sql: sql,
+                fn: null,
+                filter: null
+            });
+        }
+        else {
+            PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
+        }
+    };
+}
+exports.PureQuery = PureQuery;
 function QueryFilter(filter) {
     return function (target, propertyKey) {
         let classType = target.constructor;
@@ -123,7 +171,9 @@ function QueryFilter(filter) {
         }
         if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
             PgTemplateContainer.instance.get(classType).set(propertyKey, {
-                type: 'query',
+                type: 'Query',
+                sql: null,
+                fn: null,
                 filter: filter
             });
         }
@@ -133,6 +183,44 @@ function QueryFilter(filter) {
     };
 }
 exports.QueryFilter = QueryFilter;
+function MultipleQuery(sql) {
+    return function (target, propertyKey) {
+        let classType = target.constructor;
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
+        }
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
+                type: 'MultipleQuery',
+                sql: sql,
+                fn: null,
+                filter: null
+            });
+        }
+        else {
+            PgTemplateContainer.instance.get(classType).get(propertyKey).sql = sql;
+        }
+    };
+}
+exports.MultipleQuery = MultipleQuery;
+function MultipleQueryFilter(filter) {
+    return function (target, propertyKey) {
+        let classType = target.constructor;
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
+        }
+        if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
+            PgTemplateContainer.instance.get(classType).set(propertyKey, {
+                type: 'MultipleQuery',
+                sql: null,
+                fn: null,
+                filter: filter
+            });
+        }
+        PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
+    };
+}
+exports.MultipleQueryFilter = MultipleQueryFilter;
 function Transaction(sql) {
     return function (target, propertyKey) {
         let classType = target.constructor;
@@ -141,8 +229,10 @@ function Transaction(sql) {
         }
         if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
             PgTemplateContainer.instance.get(classType).set(propertyKey, {
-                type: 'transcation',
-                sql: sql
+                type: 'Transcation',
+                sql: sql,
+                fn: null,
+                filter: null
             });
         }
         else {
@@ -159,13 +249,13 @@ function TransactionFilter(filter) {
         }
         if (!PgTemplateContainer.instance.get(classType).has(propertyKey)) {
             PgTemplateContainer.instance.get(classType).set(propertyKey, {
-                type: 'transcation',
+                type: 'Transcation',
+                sql: null,
+                fn: null,
                 filter: filter
             });
         }
-        else {
-            PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
-        }
+        PgTemplateContainer.instance.get(classType).get(propertyKey).filter = filter;
     };
 }
 exports.TransactionFilter = TransactionFilter;
