@@ -14,6 +14,9 @@ export interface QueryProperties {
   sql: string
   fn: (...args: Array<any>) => any
   filter: (r: QueryResult | ReadonlyArray<QueryResult>) => any
+  guard?: (r: QueryResult | ReadonlyArray<QueryResult>) => boolean
+  guardMessage?: string
+  transformed: boolean
 }
 
 export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, QueryProperties>> {
@@ -29,7 +32,8 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
   public transform() {
     for (let [classType, map] of super.entries()) {
       for (let [key, value] of map.entries()) {
-        if (typeof value.sql === 'string') {
+        if (typeof value.sql === 'string' && value.transformed !== true) {
+          value.transformed = true
           switch (value.type) {
           case 'Query':
             value.fn = Reflect.get(classType.prototype, key)
@@ -44,7 +48,7 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
             value.fn = Reflect.get(classType.prototype, key)
             Reflect.defineProperty(classType.prototype, key, {
               value: function (...args: any[]) {
-                return async function (c: PoolClient) {
+                return async function (c: PoolClient | Pool) {
                   let result = await c.query(PostgresFormat.withArray(value.sql, args))
                   return typeof value.filter === 'function' ? value.filter(result) : result
                 }
@@ -57,10 +61,16 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
               value: async function (...args: any[]) {
                 let connection = await this.pool.connect()
                 let result: QueryResult | Array<QueryResult>
+                let returnValue: any
                 try {
                   await connection.query('BEGIN')
                   result = await connection.query(PostgresFormat.withArray(value.sql, args))
                   await connection.query('COMMIT')
+                  if (typeof value.guard === 'function') {
+                    if (!value.guard(result)) {
+                      throw new Error(`Incorrect transaction: ${typeof value.guardMessage === 'string' ? value.guardMessage : ''}`)
+                    }
+                  }
                 } catch (e) {
                   await connection.query('ROLLBACK')
                   throw e
@@ -80,7 +90,8 @@ export class PgTemplateContainer extends Map<RepositoryClass, Map<PropertyKey, Q
   public untransform() {
     for (let [classType, map] of super.entries()) {
       for (let [key, value] of map.entries()) {
-        if (typeof value.sql === 'string') {
+        if (typeof value.sql === 'string' && value.transformed === true) {
+          value.transformed = false
           switch (value.type) {
           case 'Query':
           case 'PureQuery': 
@@ -138,6 +149,21 @@ export function TransactionQuery(sql: string): PropertyDecorator {
     } 
     c.get(propertyKey).type = 'TransactionQuery'
     c.get(propertyKey).sql = sql
+  }
+}
+
+export function TransactionGuard<T>(guard: (r: QueryResult | Array<QueryResult>) => boolean, message?: string): PropertyDecorator {
+  return function (target: Repository, propertyKey: PropertyKey) {
+    let classType = target.constructor as RepositoryClass
+    if (!PgTemplateContainer.instance.has(classType)) {
+      PgTemplateContainer.instance.set(classType, new Map())
+    }
+    let c = PgTemplateContainer.instance.get(classType)
+    if (!c.has(propertyKey)) {
+      c.set(propertyKey, Object.create(null))
+    } 
+    c.get(propertyKey).guard = guard
+    c.get(propertyKey).guardMessage = message
   }
 }
 

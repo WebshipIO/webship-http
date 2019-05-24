@@ -19,7 +19,8 @@ class PgTemplateContainer extends Map {
     transform() {
         for (let [classType, map] of super.entries()) {
             for (let [key, value] of map.entries()) {
-                if (typeof value.sql === 'string') {
+                if (typeof value.sql === 'string' && value.transformed !== true) {
+                    value.transformed = true;
                     switch (value.type) {
                         case 'Query':
                             value.fn = Reflect.get(classType.prototype, key);
@@ -52,10 +53,16 @@ class PgTemplateContainer extends Map {
                                     return __awaiter(this, void 0, void 0, function* () {
                                         let connection = yield this.pool.connect();
                                         let result;
+                                        let returnValue;
                                         try {
                                             yield connection.query('BEGIN');
                                             result = yield connection.query(PostgresFormat.withArray(value.sql, args));
                                             yield connection.query('COMMIT');
+                                            if (typeof value.guard === 'function') {
+                                                if (!value.guard(result)) {
+                                                    throw new Error(`Incorrect transaction: ${typeof value.guardMessage === 'string' ? value.guardMessage : ''}`);
+                                                }
+                                            }
                                         }
                                         catch (e) {
                                             yield connection.query('ROLLBACK');
@@ -77,7 +84,8 @@ class PgTemplateContainer extends Map {
     untransform() {
         for (let [classType, map] of super.entries()) {
             for (let [key, value] of map.entries()) {
-                if (typeof value.sql === 'string') {
+                if (typeof value.sql === 'string' && value.transformed === true) {
+                    value.transformed = false;
                     switch (value.type) {
                         case 'Query':
                         case 'PureQuery':
@@ -138,6 +146,21 @@ function TransactionQuery(sql) {
     };
 }
 exports.TransactionQuery = TransactionQuery;
+function TransactionGuard(guard, message) {
+    return function (target, propertyKey) {
+        let classType = target.constructor;
+        if (!PgTemplateContainer.instance.has(classType)) {
+            PgTemplateContainer.instance.set(classType, new Map());
+        }
+        let c = PgTemplateContainer.instance.get(classType);
+        if (!c.has(propertyKey)) {
+            c.set(propertyKey, Object.create(null));
+        }
+        c.get(propertyKey).guard = guard;
+        c.get(propertyKey).guardMessage = message;
+    };
+}
+exports.TransactionGuard = TransactionGuard;
 function QueryFilter(filter) {
     return function (target, propertyKey) {
         let classType = target.constructor;
