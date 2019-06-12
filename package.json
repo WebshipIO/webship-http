@@ -42,6 +42,8 @@
   "dependencies": {
     "@webnode/cdi": "^1.2.4",
     "@webnode/http": "^1.2.5",
-    "@webnode/pg-template": "^1.1.1"
+    "@webnode/pg-template": "^1.1.1",
+    "@webnode/react-livecom": "^1.0.0",
+    "@webnode/react-style": "^1.0.0"
   }
 }
