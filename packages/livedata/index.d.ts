@@ -19,7 +19,7 @@ declare namespace WebNode {
 
   export class LiveData<T> {
     public observe(com: LifecycleOwner, cb: LiveCallback<T>): void
-    public set(value: T): void
+    public set(value: T): Promise<void>
     public readonly value: T 
     public hasObservers(): boolean 
     public sizeOfObservers(): number

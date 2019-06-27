@@ -23,7 +23,7 @@ export class LiveData<T> {
 
   public observe(com: LifecycleOwner, cb: LiveCallback<T>) {
     if (this.handlers.has(com)) {
-      let handler = this.handlers.get(com)
+      let handler = this.handlers.get(com) as LiveHandler<T>
       if (handler.callback instanceof Array) {
         handler.callback.push(cb)
       } else {
@@ -39,7 +39,8 @@ export class LiveData<T> {
     }
   }
 
-  public set(value: T) {
+  public async set(value: T) {
+    await Promise.resolve()
     this._value = value
     for (let handler of this.handlers.values()) {
       if (handler.callback instanceof Array) {
@@ -69,13 +70,13 @@ export class LiveData<T> {
   }
 
   public deleteObserver(com: LifecycleOwner) {
-    com.deleteLiveCanceler(this.handlers.get(com).canceler)
+    com.deleteLiveCanceler((this.handlers.get(com) as LiveHandler<T>).canceler)
     this.handlers.delete(com)
   }
 
   public deleteObserverIfHas(com: LifecycleOwner) {
     if (this.handlers.has(com)) {
-      com.deleteLiveCanceler(this.handlers.get(com).canceler)
+      com.deleteLiveCanceler((this.handlers.get(com) as LiveHandler<T>).canceler)
       this.handlers.delete(com)
     }
   }

@@ -1,6 +1,6 @@
 {
   "name": "@webnode/react-livecom",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Observed live component",
   "main": "dist",
   "engines": {
@@ -38,7 +38,7 @@
     "@types/react-dom": "^16.8.4"
   },
   "dependencies": {
-    "@webnode/livedata": "^1.0.0",
+    "@webnode/livedata": "^1.0.3",
     "react": "^16.8.6",
     "react-dom": "^16.8.6"
   }
