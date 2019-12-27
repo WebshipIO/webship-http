@@ -6,7 +6,7 @@ const instanceContainer = new Map();
 function Injectable(t) {
     const args = Reflect.getMetadata('design:paramtypes', t);
     if (args === undefined && Reflect.getPrototypeOf(t) instanceof Function) {
-        throw new Error(`cannot found a valid constructor of 'class ${t.name}'`);
+        throw new Error(`not found an injectable constructor of 'class ${t.name}'`);
     }
     dependencyContainer.set(t, {
         args: args
@@ -60,7 +60,7 @@ class LDIProvider {
             }
         }
         else {
-            throw new Error(`not found 'class ${t.name}' in instance container`);
+            throw new Error(`not found 'class ${t.name}' in dependency container`);
         }
         return instance;
     }

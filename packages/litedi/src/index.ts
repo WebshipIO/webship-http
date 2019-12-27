@@ -13,7 +13,7 @@ export function Injectable<T extends ClassType>(t: T): T {
   const args = Reflect.getMetadata('design:paramtypes', t)
 
   if (args === undefined && Reflect.getPrototypeOf(t) instanceof Function) {
-    throw new Error(`cannot found a valid constructor of 'class ${t.name}'`)
+    throw new Error(`not found an injectable constructor of 'class ${t.name}'`)
   }
 
   dependencyContainer.set(t, {
@@ -62,7 +62,7 @@ export class LDIProvider {
         (instance as any).onCreate()
       }
     } else {
-      throw new Error(`not found 'class ${t.name}' in instance container`)
+      throw new Error(`not found 'class ${t.name}' in dependency container`)
     }
     return instance
   }
