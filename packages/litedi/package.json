@@ -1,0 +1,41 @@
+{
+  "name": "@webnode/litedi",
+  "version": "1.0.0",
+  "description": "Lite dependency injection framework",
+  "main": "dist",
+  "engines": {
+    "node": ">=10.15.3"
+  },
+  "keywords": [
+    "dependency injection",
+    "webnode"
+  ],
+  "author": {
+    "name": "Wang Tong",
+    "email": "itulayangi@outlook.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webnode-io/webnode.git"
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "gulp build"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "gulp": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "jest": "^24.9.0",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^24.2.0",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3",
+    "jest-decorators": "^0.1.6"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.13"
+  }
+}
