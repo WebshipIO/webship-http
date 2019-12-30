@@ -15,7 +15,7 @@ function Injectable(t) {
 }
 exports.Injectable = Injectable;
 class LDIProvider {
-    static get(t) {
+    static getBy(t, origin) {
         let instance;
         if (instanceContainer.has(t)) {
             instance = instanceContainer.get(t);
@@ -48,7 +48,10 @@ class LDIProvider {
                         param = Object.create(null);
                     }
                     else {
-                        param = LDIProvider.get(arg);
+                        if (arg === origin) {
+                            throw new Error(`circular dependency detected by 'class ${t.name}' and original 'class ${origin}'`);
+                        }
+                        param = LDIProvider.getBy(arg, origin);
                     }
                     params.push(param);
                 }
@@ -63,6 +66,9 @@ class LDIProvider {
             throw new Error(`not found 'class ${t.name}' in dependency container`);
         }
         return instance;
+    }
+    static get(t) {
+        return LDIProvider.getBy(t, t);
     }
     static set(t, instance) {
         instanceContainer.set(t, instance);

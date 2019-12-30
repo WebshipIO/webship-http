@@ -1,6 +1,6 @@
 {
   "name": "@webnode/litedi",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lite dependency injection framework",
   "main": "dist",
   "engines": {

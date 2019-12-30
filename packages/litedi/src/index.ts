@@ -23,7 +23,7 @@ export function Injectable<T extends ClassType>(t: T): T {
 }
 
 export class LDIProvider {
-  public static get<T>(t: ClassType<T>): T {
+  private static getBy<T>(t: ClassType<T>, origin: ClassType<T>): T {
   // 根据 ``t`` 获取实例容器内保存的实例。如果没有，就创建一个新的实例；如果依赖容器内没有
   // ``t`` 的映射，则抛出一个异常。
     let instance: T
@@ -51,7 +51,10 @@ export class LDIProvider {
             param = Object.create(null)
           } else {
             // TODO: 优化这个算法，把递归转换为循环
-            param = LDIProvider.get(arg)
+            if (arg === origin) {
+              throw new Error(`circular dependency detected by 'class ${t.name}' and original 'class ${origin}'`)
+            }
+            param = LDIProvider.getBy(arg, origin)
           }
           params.push(param)
         }
@@ -65,6 +68,12 @@ export class LDIProvider {
       throw new Error(`not found 'class ${t.name}' in dependency container`)
     }
     return instance
+  }
+
+  public static get<T>(t: ClassType<T>): T {
+  // 根据 ``t`` 获取实例容器内保存的实例。如果没有，就创建一个新的实例；如果依赖容器内没有
+  // ``t`` 的映射，则抛出一个异常。
+    return LDIProvider.getBy(t, t)
   }
 
   public static set<T>(t: ClassType<T>, instance: object) {
